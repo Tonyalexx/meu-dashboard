@@ -40,7 +40,7 @@
     .neon-red-text { color: #ff2a5f; text-shadow: 0 0 8px rgba(255, 42, 95, 0.8), 0 0 18px rgba(255, 42, 95, 0.5); }
     table th, table td { text-align: center; vertical-align: middle; white-space: nowrap; }
 
-    /* ========== PAINEL DE FILTROS (só design) ========== */
+    /* ========== PAINEL DE FILTROS ========== */
     .fcard {
       background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.55));
       border: 1px solid #1e293b;
@@ -61,6 +61,31 @@
     .fcard-title {
       font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
       text-transform: uppercase; color: #cbd5e1;
+    }
+
+    /* Botão OFF (pequeno, do lado direito do título) */
+    .off-btn {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #0b1220;
+      border: 1px solid #1e293b;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .off-btn:hover {
+      color: #ffffff;
+      border-color: rgba(244, 63, 94, 0.55);
+    }
+    .off-btn.active {
+      color: #ffffff;
+      border-color: #f43f5e;
+      background: linear-gradient(135deg, #e11d48, #f43f5e);
+      box-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
     }
 
     .chip {
@@ -204,11 +229,12 @@
           <div class="fcard-head">
             <div class="fcard-icon"><i class="fa-regular fa-clock"></i></div>
             <span class="fcard-title">Timeframe</span>
+            <button id="off-tf" onclick="setOff('tf')" class="off-btn active">OFF</button>
           </div>
           <div class="tf-grid" id="tf-container">
-            <button onclick="selectTimeframe(this)" class="tf-btn chip">M1</button>
-            <button onclick="selectTimeframe(this)" class="tf-btn chip active">M5</button>
-            <button onclick="selectTimeframe(this)" class="tf-btn chip">M15</button>
+            <button onclick="selectTimeframe(this)" data-tf="M1" class="tf-btn chip">M1</button>
+            <button onclick="selectTimeframe(this)" data-tf="M5" class="tf-btn chip">M5</button>
+            <button onclick="selectTimeframe(this)" data-tf="M15" class="tf-btn chip">M15</button>
           </div>
         </div>
 
@@ -217,6 +243,7 @@
           <div class="fcard-head">
             <div class="fcard-icon"><i class="fa-solid fa-hourglass-half"></i></div>
             <span class="fcard-title">Horário (Hora de Início)</span>
+            <button id="off-hour" onclick="setOff('hour')" class="off-btn active">OFF</button>
           </div>
           <div class="hour-grid" id="hour-container"></div>
         </div>
@@ -226,9 +253,10 @@
           <div class="fcard-head">
             <div class="fcard-icon"><i class="fa-regular fa-calendar-days"></i></div>
             <span class="fcard-title">Período</span>
+            <button id="off-period" onclick="setOff('period')" class="off-btn active">OFF</button>
           </div>
           <div class="period-wrap" id="period-container">
-            <button onclick="selectPeriod(this)" class="period-btn chip active">1 Ano</button>
+            <button onclick="selectPeriod(this)" class="period-btn chip">1 Ano</button>
             <button onclick="selectPeriod(this)" class="period-btn chip">6 Meses</button>
             <button onclick="selectPeriod(this)" class="period-btn chip">3 Meses</button>
             <button onclick="selectPeriod(this)" class="period-btn chip">1 Mês</button>
@@ -263,6 +291,7 @@
               <th class="py-3 px-3">Sharpe</th>
               <th class="py-3 px-3">% Vitória</th>
               <th class="py-3 px-3">Fator EA</th>
+              <th class="py-3 px-3">Timeframe</th>
             </tr>
           </thead>
           <tbody id="table-body" class="divide-y divide-slate-800/60 font-medium"></tbody>
@@ -279,6 +308,14 @@
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSnal0cSHx4_QoyubFzEMQiM2VPt1oIvdJcNsmz9mWJXunG4yZGdup9-DfuBuJQLGe1henVi3evil_k/pub?output=csv';
     let equityChartInstance = null;
+
+    // Todos os backtests lidos da planilha (sem filtro)
+    let allRows = [];
+
+    // Filtros selecionados. null = OFF (nenhum selecionado)
+    let selectedTF = null;      // 'M1', 'M5', 'M15'
+    let selectedHour = null;    // 0..23 (por enquanto só visual)
+    let selectedPeriod = null;  // texto do botão (por enquanto só visual)
 
     function parseCSVLine(line) {
       const out = [];
@@ -322,6 +359,7 @@
 
     const fmtMoney = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+    // ----- BOTÕES DAS HORAS (00:00 até 23:00) -----
     function renderHourButtons() {
       const container = document.getElementById('hour-container');
       if (!container) return;
@@ -329,28 +367,64 @@
       for (let i = 0; i < 24; i++) {
         const hourStr = i < 10 ? `0${i}:00` : `${i}:00`;
         const btn = document.createElement('button');
-        btn.className = `hour-btn chip ${i === 8 ? 'active' : ''}`;
+        btn.className = 'hour-btn chip';
+        btn.dataset.hour = i;
         btn.innerText = hourStr;
         btn.onclick = function () { selectHour(this); };
         container.appendChild(btn);
       }
     }
 
+    // ----- ATUALIZA O VISUAL DOS 3 FILTROS (botões ativos e OFF) -----
+    function updateFilterUI() {
+      document.querySelectorAll('.tf-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tf === selectedTF);
+      });
+      document.querySelectorAll('.hour-btn').forEach(btn => {
+        btn.classList.toggle('active', selectedHour !== null && Number(btn.dataset.hour) === selectedHour);
+      });
+      document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText === selectedPeriod);
+      });
+
+      document.getElementById('off-tf').classList.toggle('active', selectedTF === null);
+      document.getElementById('off-hour').classList.toggle('active', selectedHour === null);
+      document.getElementById('off-period').classList.toggle('active', selectedPeriod === null);
+    }
+
+    // ----- BOTÃO OFF: desliga o filtro (nenhum selecionado) -----
+    function setOff(which) {
+      if (which === 'tf') selectedTF = null;
+      if (which === 'hour') selectedHour = null;
+      if (which === 'period') selectedPeriod = null;
+      updateFilterUI();
+      renderDashboard();
+    }
+
+    // ----- TIMEFRAME (filtra de verdade) -----
     function selectTimeframe(el) {
-      document.querySelectorAll('.tf-btn').forEach(btn => btn.classList.remove('active'));
-      el.classList.add('active');
+      const tf = el.dataset.tf;
+      // Clicar de novo no que já está ativo = desliga (OFF)
+      selectedTF = (selectedTF === tf) ? null : tf;
+      updateFilterUI();
+      renderDashboard();
     }
 
+    // ----- HORÁRIO (por enquanto só visual) -----
     function selectHour(el) {
-      document.querySelectorAll('.hour-btn').forEach(btn => btn.classList.remove('active'));
-      el.classList.add('active');
+      const h = Number(el.dataset.hour);
+      selectedHour = (selectedHour === h) ? null : h;
+      updateFilterUI();
     }
 
+    // ----- PERÍODO (por enquanto só visual) -----
     function selectPeriod(el) {
-      document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
-      el.classList.add('active');
+      const p = el.innerText;
+      selectedPeriod = (selectedPeriod === p) ? null : p;
+      updateFilterUI();
     }
 
+    // ----- LEITURA DA PLANILHA -----
     async function fetchData() {
       try {
         const response = await fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' });
@@ -360,78 +434,99 @@
         const rows = data.split(/\r?\n/).map(r => r.trim()).filter(r => r.length > 0);
         if (rows.length === 0) return;
 
-        let totalLucro = 0;
-        let totalBacktests = 0;
-        let sumSharpe = 0;
-        let sumDD = 0;
-        const cumulativePoints = [];
-        const labelsList = [];
-
-        const tableBody = document.getElementById('table-body');
-        tableBody.innerHTML = '';
-
         const firstCols = parseCSVLine(rows[0]);
         const startIdx = /^[\s$\-+0-9.,]+$/.test(firstCols[1] || '') ? 0 : 1;
 
+        const parsed = [];
         for (let i = startIdx; i < rows.length; i++) {
           const cols = parseCSVLine(rows[i]);
           if (cols.length < 5) continue;
 
-          const dataHora     = cols[0] || '-';
-          const lucroLiquido = cleanNum(cols[1]);
-          const drawdown     = cleanNum(cols[2]);
-          const maiorLucro   = cleanNum(cols[3]);
-          const maiorPerda   = cleanNum(cols[4]);
-          const ganhosConsec = cleanNum(cols[5]);
-          const perdasConsec = cleanNum(cols[6]);
-          const operacoes    = Math.round(cleanNum(cols[7]));
-          const sharpe       = cleanNum(cols[8]);
-          const pctVitoria   = cleanNum(cols[9]);
-          const fatorEA      = cleanNum(cols[10]);
+          const tfRaw = (cols[11] || '').trim().toUpperCase();
 
-          totalLucro += lucroLiquido;
-          totalBacktests++;
-          sumSharpe += sharpe;
-          sumDD += drawdown;
-
-          cumulativePoints.push(totalLucro);
-          labelsList.push(`Run #${totalBacktests}`);
-
-          const tr = document.createElement('tr');
-          tr.className = 'hover:bg-slate-800/40 transition text-slate-300';
-          const lucroClass = lucroLiquido >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
-
-          tr.innerHTML = `
-            <td class="py-3 px-3 text-slate-400">${dataHora}</td>
-            <td class="py-3 px-3 ${lucroClass}">$ ${fmtMoney(lucroLiquido)}</td>
-            <td class="py-3 px-3 text-rose-400">${drawdown.toFixed(2)}%</td>
-            <td class="py-3 px-3 text-emerald-400">$ ${fmtMoney(maiorLucro)}</td>
-            <td class="py-3 px-3 text-rose-400">$ ${fmtMoney(maiorPerda)}</td>
-            <td class="py-3 px-3 text-emerald-400">$ ${fmtMoney(ganhosConsec)}</td>
-            <td class="py-3 px-3 text-rose-400">$ ${fmtMoney(perdasConsec)}</td>
-            <td class="py-3 px-3">${operacoes}</td>
-            <td class="py-3 px-3 font-semibold text-cyan-400">${sharpe.toFixed(2)}</td>
-            <td class="py-3 px-3 text-emerald-400">${pctVitoria.toFixed(2)}%</td>
-            <td class="py-3 px-3">${fatorEA.toFixed(2)}</td>
-          `;
-          tableBody.appendChild(tr);
+          parsed.push({
+            dataHora:     cols[0] || '-',
+            lucroLiquido: cleanNum(cols[1]),
+            drawdown:     cleanNum(cols[2]),
+            maiorLucro:   cleanNum(cols[3]),
+            maiorPerda:   cleanNum(cols[4]),
+            ganhosConsec: cleanNum(cols[5]),
+            perdasConsec: cleanNum(cols[6]),
+            operacoes:    Math.round(cleanNum(cols[7])),
+            sharpe:       cleanNum(cols[8]),
+            pctVitoria:   cleanNum(cols[9]),
+            fatorEA:      cleanNum(cols[10]),
+            timeframe:    tfRaw || '-'
+          });
         }
 
-        if (totalBacktests > 0) {
-          const kpiProfit = document.getElementById('kpi-net-profit');
-          kpiProfit.innerText = `$ ${fmtMoney(totalLucro)}`;
-          kpiProfit.className = `text-3xl font-bold tracking-tight ${totalLucro >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-
-          document.getElementById('kpi-total-tests').innerText = totalBacktests;
-          document.getElementById('kpi-sharpe').innerText = (sumSharpe / totalBacktests).toFixed(2);
-          document.getElementById('kpi-drawdown').innerText = `${(sumDD / totalBacktests).toFixed(2)}%`;
-
-          updateEquityChart(labelsList, cumulativePoints);
-        }
+        allRows = parsed;
+        renderDashboard();
 
       } catch (err) {
         console.log('Aguardando sincronização com dados da planilha');
       }
+    }
+
+    // ----- DESENHA TABELA, KPIs E GRÁFICO COM O FILTRO APLICADO -----
+    function renderDashboard() {
+      const rows = (selectedTF === null)
+        ? allRows
+        : allRows.filter(r => r.timeframe === selectedTF);
+
+      let totalLucro = 0;
+      let sumSharpe = 0;
+      let sumDD = 0;
+      const cumulativePoints = [];
+      const labelsList = [];
+
+      const tableBody = document.getElementById('table-body');
+      tableBody.innerHTML = '';
+
+      if (rows.length === 0) {
+        tableBody.innerHTML = `
+          <tr><td colspan="12" class="py-6 text-slate-500">Nenhum backtest encontrado para este timeframe.</td></tr>`;
+      }
+
+      rows.forEach((r, idx) => {
+        totalLucro += r.lucroLiquido;
+        sumSharpe += r.sharpe;
+        sumDD += r.drawdown;
+
+        cumulativePoints.push(totalLucro);
+        labelsList.push(`Run #${idx + 1}`);
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/40 transition text-slate-300';
+        const lucroClass = r.lucroLiquido >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+
+        tr.innerHTML = `
+          <td class="py-3 px-3 text-slate-400">${r.dataHora}</td>
+          <td class="py-3 px-3 ${lucroClass}">$ ${fmtMoney(r.lucroLiquido)}</td>
+          <td class="py-3 px-3 text-rose-400">${r.drawdown.toFixed(2)}%</td>
+          <td class="py-3 px-3 text-emerald-400">$ ${fmtMoney(r.maiorLucro)}</td>
+          <td class="py-3 px-3 text-rose-400">$ ${fmtMoney(r.maiorPerda)}</td>
+          <td class="py-3 px-3 text-emerald-400">$ ${fmtMoney(r.ganhosConsec)}</td>
+          <td class="py-3 px-3 text-rose-400">$ ${fmtMoney(r.perdasConsec)}</td>
+          <td class="py-3 px-3">${r.operacoes}</td>
+          <td class="py-3 px-3 font-semibold text-cyan-400">${r.sharpe.toFixed(2)}</td>
+          <td class="py-3 px-3 text-emerald-400">${r.pctVitoria.toFixed(2)}%</td>
+          <td class="py-3 px-3">${r.fatorEA.toFixed(2)}</td>
+          <td class="py-3 px-3 font-semibold text-amber-400">${r.timeframe}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      const total = rows.length;
+      const kpiProfit = document.getElementById('kpi-net-profit');
+      kpiProfit.innerText = `$ ${fmtMoney(totalLucro)}`;
+      kpiProfit.className = `text-3xl font-bold tracking-tight ${total === 0 ? 'text-white' : (totalLucro >= 0 ? 'text-emerald-400' : 'text-rose-400')}`;
+
+      document.getElementById('kpi-total-tests').innerText = total;
+      document.getElementById('kpi-sharpe').innerText = total ? (sumSharpe / total).toFixed(2) : '0.00';
+      document.getElementById('kpi-drawdown').innerText = total ? `${(sumDD / total).toFixed(2)}%` : '0.00%';
+
+      updateEquityChart(labelsList, cumulativePoints);
     }
 
     function initChart() {
@@ -478,6 +573,7 @@
 
     window.onload = function () {
       renderHourButtons();
+      updateFilterUI();
       initChart();
       fetchData();
       setInterval(fetchData, 30000);
