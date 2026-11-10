@@ -97,8 +97,8 @@
 
       <div class="bg-cardBg border border-emerald-500/30 rounded-xl p-4 flex justify-between items-start relative overflow-hidden">
         <div class="space-y-1">
-          <p class="text-xs uppercase font-semibold text-slate-400">Profit Factor Médio</p>
-          <h2 class="text-3xl font-bold text-white tracking-tight" id="kpi-profit-factor">0.00</h2>
+          <p class="text-xs uppercase font-semibold text-slate-400">Sharpe Médio</p>
+          <h2 class="text-3xl font-bold text-white tracking-tight" id="kpi-sharpe">0.00</h2>
         </div>
         <div class="p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-emerald-400">
           <i class="fa-solid fa-shield-halved text-lg"></i>
@@ -197,16 +197,15 @@
             <tr class="bg-slate-900/80 text-cyan-400 border-b border-slate-800 font-semibold uppercase">
               <th class="py-3 px-3">Data / Hora</th>
               <th class="py-3 px-3">Lucro Líquido</th>
-              <th class="py-3 px-3">Lucro Bruto</th>
-              <th class="py-3 px-3">Perda Bruta</th>
-              <th class="py-3 px-3">Profit Factor</th>
               <th class="py-3 px-3">Drawdown</th>
+              <th class="py-3 px-3">Maior Lucro</th>
+              <th class="py-3 px-3">Maior Perda</th>
+              <th class="py-3 px-3">Ganhos Consec.</th>
+              <th class="py-3 px-3">Perdas Consec.</th>
               <th class="py-3 px-3">Operações</th>
+              <th class="py-3 px-3">Sharpe</th>
               <th class="py-3 px-3">% Vitória</th>
-              <th class="py-3 px-3">% Derrota</th>
-              <th class="py-3 px-3">Ativo</th>
-              <th class="py-3 px-3">Timeframe</th>
-              <th class="py-3 px-3">Estratégia</th>
+              <th class="py-3 px-3">Fator EA</th>
             </tr>
           </thead>
           <tbody id="table-body" class="divide-y divide-slate-800/60 font-medium"></tbody>
@@ -224,7 +223,6 @@
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSnal0cSHx4_QoyubFzEMQiM2VPt1oIvdJcNsmz9mWJXunG4yZGdup9-DfuBuJQLGe1henVi3evil_k/pub?output=csv';
     let equityChartInstance = null;
 
-    // Lê uma linha CSV respeitando aspas
     function parseCSVLine(line) {
       const out = [];
       let cur = '';
@@ -245,7 +243,6 @@
       return out.map(c => c.trim());
     }
 
-    // Converte texto em número aceitando 1.234,56 / 1,234.56 / 1234,56 / 22.08%
     function cleanNum(val) {
       if (val === null || val === undefined || val === '') return 0;
       let s = val.toString().replace(/\s/g, '').replace(/[^0-9.,-]/g, '');
@@ -314,7 +311,7 @@
 
         let totalLucro = 0;
         let totalBacktests = 0;
-        let sumPF = 0;
+        let sumSharpe = 0;
         let sumDD = 0;
         const cumulativePoints = [];
         const labelsList = [];
@@ -322,7 +319,6 @@
         const tableBody = document.getElementById('table-body');
         tableBody.innerHTML = '';
 
-        // Pula o cabeçalho se a segunda coluna da primeira linha não for número
         const firstCols = parseCSVLine(rows[0]);
         const startIdx = /^[\s$\-+0-9.,]+$/.test(firstCols[1] || '') ? 0 : 1;
 
@@ -332,20 +328,19 @@
 
           const dataHora     = cols[0] || '-';
           const lucroLiquido = cleanNum(cols[1]);
-          const lucroBruto   = cleanNum(cols[2]);
-          const perdaBruta   = cleanNum(cols[3]);
-          const profitFactor = cleanNum(cols[4]);
-          const drawdown     = cleanNum(cols[5]);
-          const operacoes    = cols[6] ? Math.round(cleanNum(cols[6])) : '-';
-          const pctVitoria   = cols[7] ? cleanNum(cols[7]).toFixed(2) + '%' : '-';
-          const pctDerrota   = cols[8] ? cleanNum(cols[8]).toFixed(2) + '%' : '-';
-          const ativo        = cols[9] || 'XAUUSD';
-          const timeframe    = cols[10] || '-';
-          const estrategia   = cols[11] || '-';
+          const drawdown     = cleanNum(cols[2]);
+          const maiorLucro   = cleanNum(cols[3]);
+          const maiorPerda   = cleanNum(cols[4]);
+          const ganhosConsec = cleanNum(cols[5]);
+          const perdasConsec = cleanNum(cols[6]);
+          const operacoes    = Math.round(cleanNum(cols[7]));
+          const sharpe       = cleanNum(cols[8]);
+          const pctVitoria   = cleanNum(cols[9]);
+          const fatorEA      = cleanNum(cols[10]);
 
           totalLucro += lucroLiquido;
           totalBacktests++;
-          sumPF += profitFactor;
+          sumSharpe += sharpe;
           sumDD += drawdown;
 
           cumulativePoints.push(totalLucro);
@@ -358,16 +353,15 @@
           tr.innerHTML = `
             <td class="py-3 px-3 text-slate-400">${dataHora}</td>
             <td class="py-3 px-3 ${lucroClass}">$ ${fmtMoney(lucroLiquido)}</td>
-            <td class="py-3 px-3">$ ${fmtMoney(lucroBruto)}</td>
-            <td class="py-3 px-3 text-rose-400">$ ${fmtMoney(perdaBruta)}</td>
-            <td class="py-3 px-3 font-semibold text-cyan-400">${profitFactor.toFixed(2)}</td>
             <td class="py-3 px-3 text-rose-400">${drawdown.toFixed(2)}%</td>
+            <td class="py-3 px-3 text-emerald-400">$ ${fmtMoney(maiorLucro)}</td>
+            <td class="py-3 px-3 text-rose-400">$ ${fmtMoney(maiorPerda)}</td>
+            <td class="py-3 px-3 text-emerald-400">$ ${fmtMoney(ganhosConsec)}</td>
+            <td class="py-3 px-3 text-rose-400">$ ${fmtMoney(perdasConsec)}</td>
             <td class="py-3 px-3">${operacoes}</td>
-            <td class="py-3 px-3 text-emerald-400">${pctVitoria}</td>
-            <td class="py-3 px-3 text-rose-400">${pctDerrota}</td>
-            <td class="py-3 px-3 font-semibold text-slate-200">${ativo}</td>
-            <td class="py-3 px-3">${timeframe}</td>
-            <td class="py-3 px-3">${estrategia}</td>
+            <td class="py-3 px-3 font-semibold text-cyan-400">${sharpe.toFixed(2)}</td>
+            <td class="py-3 px-3 text-emerald-400">${pctVitoria.toFixed(2)}%</td>
+            <td class="py-3 px-3">${fatorEA.toFixed(2)}</td>
           `;
           tableBody.appendChild(tr);
         }
@@ -378,7 +372,7 @@
           kpiProfit.className = `text-3xl font-bold tracking-tight ${totalLucro >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
 
           document.getElementById('kpi-total-tests').innerText = totalBacktests;
-          document.getElementById('kpi-profit-factor').innerText = (sumPF / totalBacktests).toFixed(2);
+          document.getElementById('kpi-sharpe').innerText = (sumSharpe / totalBacktests).toFixed(2);
           document.getElementById('kpi-drawdown').innerText = `${(sumDD / totalBacktests).toFixed(2)}%`;
 
           updateEquityChart(labelsList, cumulativePoints);
