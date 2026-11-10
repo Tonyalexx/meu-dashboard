@@ -224,7 +224,7 @@
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSnal0cSHx4_QoyubFzEMQiM2VPt1oIvdJcNsmz9mWJXunG4yZGdup9-DfuBuJQLGe1henVi3evil_k/pub?output=csv';
     let equityChartInstance = null;
 
-    // Lê uma linha CSV respeitando aspas (valores com vírgula dentro de aspas não quebram mais as colunas)
+    // Lê uma linha CSV respeitando aspas
     function parseCSVLine(line) {
       const out = [];
       let cur = '';
@@ -324,7 +324,7 @@
 
         // Pula o cabeçalho se a segunda coluna da primeira linha não for número
         const firstCols = parseCSVLine(rows[0]);
-        const startIdx = /\d/.test(firstCols[1] || '') && !isNaN(cleanNum(firstCols[1])) && /^[\s$\-+0-9.,]+$/.test(firstCols[1]) ? 0 : 1;
+        const startIdx = /^[\s$\-+0-9.,]+$/.test(firstCols[1] || '') ? 0 : 1;
 
         for (let i = startIdx; i < rows.length; i++) {
           const cols = parseCSVLine(rows[i]);
