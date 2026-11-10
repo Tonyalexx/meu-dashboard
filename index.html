@@ -5,16 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>XAUUSD - Strategy Optimizer</title>
 
-  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- Google Fonts: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <script>
@@ -22,9 +15,7 @@
       darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
           colors: {
             darkBg: '#090d14',
             cardBg: '#111823',
@@ -40,46 +31,32 @@
   </script>
 
   <style>
-    body {
-      background-color: #090d14;
-      color: #e2e8f0;
-      font-family: 'Inter', sans-serif;
-    }
+    body { background-color: #090d14; color: #e2e8f0; font-family: 'Inter', sans-serif; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #090d14; }
     ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #334155; }
     .glow-cyan { box-shadow: 0 0 15px rgba(0, 242, 254, 0.15); }
-    .neon-red-text {
-      color: #ff2a5f;
-      text-shadow: 0 0 8px rgba(255, 42, 95, 0.8), 0 0 18px rgba(255, 42, 95, 0.5);
-    }
-    .neon-red-btn {
-      background-color: rgba(225, 29, 72, 0.9);
-      color: #ffffff;
-      box-shadow: 0 0 12px rgba(244, 63, 94, 0.6);
-      border-color: #f43f5e !important;
-    }
+    .neon-red-text { color: #ff2a5f; text-shadow: 0 0 8px rgba(255, 42, 95, 0.8), 0 0 18px rgba(255, 42, 95, 0.5); }
+    .neon-red-btn { background-color: rgba(225, 29, 72, 0.9); color: #ffffff; box-shadow: 0 0 12px rgba(244, 63, 94, 0.6); border-color: #f43f5e !important; }
     select option { background-color: #111823; color: #e2e8f0; }
+    table th, table td { text-align: center; vertical-align: middle; white-space: nowrap; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between overflow-x-hidden text-sm">
 
-  <!-- TOP HEADER / NAVBAR -->
+  <!-- HEADER -->
   <header class="bg-cardBg border-b border-cardBorder px-6 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
     <div class="flex items-center space-x-6">
       <div class="flex items-center space-x-2">
         <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-600 to-red-500 flex items-center justify-center text-white font-bold shadow-lg shadow-rose-500/40">
           <i class="fa-solid font-bold fa-compass"></i>
         </div>
-        <span class="text-xl font-extrabold tracking-wider neon-red-text">
-          XAUUSD
-        </span>
+        <span class="text-xl font-extrabold tracking-wider neon-red-text">XAUUSD</span>
         <span class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">MT5 Live Dashboard</span>
       </div>
     </div>
 
-    <!-- Live Data Sync Status -->
     <div class="flex items-center space-x-3">
       <span id="sync-status" class="flex items-center space-x-1.5 text-xs text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-500/40">
         <i class="fa-solid fa-circle-dot text-[10px] animate-pulse"></i>
@@ -92,13 +69,12 @@
     </div>
   </header>
 
-  <!-- MAIN DASHBOARD CONTENT -->
+  <!-- MAIN -->
   <main class="flex-1 p-4 md:p-6 space-y-6 max-w-[1800px] mx-auto w-full">
 
-    <!-- TOP KPI SCORECARDS -->
+    <!-- KPIs -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-      <!-- KPI 1: Net Profit -->
       <div class="bg-cardBg border border-cyan-500/30 rounded-xl p-4 flex justify-between items-start relative overflow-hidden glow-cyan">
         <div class="space-y-1">
           <p class="text-xs uppercase font-semibold text-slate-400">Lucro Líquido Acumulado</p>
@@ -109,7 +85,6 @@
         </div>
       </div>
 
-      <!-- KPI 2: Total Backtests -->
       <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex justify-between items-start relative overflow-hidden">
         <div class="space-y-1">
           <p class="text-xs uppercase font-semibold text-slate-400">Total de Backtests</p>
@@ -120,7 +95,6 @@
         </div>
       </div>
 
-      <!-- KPI 3: Profit Factor Média -->
       <div class="bg-cardBg border border-emerald-500/30 rounded-xl p-4 flex justify-between items-start relative overflow-hidden">
         <div class="space-y-1">
           <p class="text-xs uppercase font-semibold text-slate-400">Profit Factor Médio</p>
@@ -131,7 +105,6 @@
         </div>
       </div>
 
-      <!-- KPI 4: Drawdown Máximo Médio -->
       <div class="bg-cardBg border border-rose-500/30 rounded-xl p-4 flex justify-between items-start relative overflow-hidden">
         <div class="space-y-1">
           <p class="text-xs uppercase font-semibold text-slate-400">Rebaixamento Médio</p>
@@ -144,7 +117,7 @@
 
     </div>
 
-    <!-- MAIN EQUITY CURVE CHART -->
+    <!-- EQUITY CURVE -->
     <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex flex-col justify-between relative">
       <div class="flex justify-between items-center mb-4">
         <div>
@@ -157,7 +130,7 @@
       </div>
     </div>
 
-    <!-- SEÇÃO DE FILTROS INTERATIVOS -->
+    <!-- FILTROS -->
     <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
         <div class="flex items-center space-x-2">
@@ -168,8 +141,7 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        <!-- CAIXA 1: TIMEFRAME -->
+
         <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
@@ -183,18 +155,15 @@
           </div>
         </div>
 
-        <!-- CAIXA 2: HORÁRIO DE OPERAÇÃO -->
         <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <i class="fa-solid fa-hourglass-half text-rose-400"></i> Horário (Hora de Início)
             </span>
           </div>
-          <div class="grid grid-cols-6 gap-1.5 max-h-36 overflow-y-auto pr-1" id="hour-container">
-          </div>
+          <div class="grid grid-cols-6 gap-1.5 max-h-36 overflow-y-auto pr-1" id="hour-container"></div>
         </div>
 
-        <!-- CAIXA 3: PERÍODO DE ANÁLISE -->
         <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-2">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
@@ -213,7 +182,7 @@
       </div>
     </div>
 
-    <!-- BOTTOM SECTION: OPTIMIZATION RESULTS TABLE -->
+    <!-- TABELA -->
     <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -240,29 +209,64 @@
               <th class="py-3 px-3">Estratégia</th>
             </tr>
           </thead>
-          <tbody id="table-body" class="divide-y divide-slate-800/60 font-medium">
-          </tbody>
+          <tbody id="table-body" class="divide-y divide-slate-800/60 font-medium"></tbody>
         </table>
       </div>
     </div>
 
   </main>
 
-  <!-- FOOTER -->
   <footer class="bg-cardBg border-t border-cardBorder px-6 py-3 text-center text-xs text-slate-500">
     XAUUSD &copy; 2026 - MT5 Automated Strategy Optimizer & Google Sheets Live Pipeline
   </footer>
 
-  <!-- DATA & CHART LOGIC SCRIPT -->
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSnal0cSHx4_QoyubFzEMQiM2VPt1oIvdJcNsmz9mWJXunG4yZGdup9-DfuBuJQLGe1henVi3evil_k/pub?output=csv';
     let equityChartInstance = null;
 
-    function cleanNum(val) {
-      if (!val) return 0;
-      let cleaned = val.toString().replace(/[^0-9.-]/g, '');
-      return parseFloat(cleaned) || 0;
+    // Lê uma linha CSV respeitando aspas (valores com vírgula dentro de aspas não quebram mais as colunas)
+    function parseCSVLine(line) {
+      const out = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+          else { inQuotes = !inQuotes; }
+        } else if (ch === ',' && !inQuotes) {
+          out.push(cur);
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      out.push(cur);
+      return out.map(c => c.trim());
     }
+
+    // Converte texto em número aceitando 1.234,56 / 1,234.56 / 1234,56 / 22.08%
+    function cleanNum(val) {
+      if (val === null || val === undefined || val === '') return 0;
+      let s = val.toString().replace(/\s/g, '').replace(/[^0-9.,-]/g, '');
+      if (!/\d/.test(s)) return 0;
+      if (s.includes(',') && s.includes('.')) {
+        if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+          s = s.replace(/\./g, '').replace(',', '.');
+        } else {
+          s = s.replace(/,/g, '');
+        }
+      } else if (s.includes(',')) {
+        s = s.replace(',', '.');
+      }
+      const dots = s.split('.');
+      if (dots.length > 2) {
+        s = dots.slice(0, -1).join('') + '.' + dots[dots.length - 1];
+      }
+      return parseFloat(s) || 0;
+    }
+
+    const fmtMoney = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     function renderHourButtons() {
       const container = document.getElementById('hour-container');
@@ -273,7 +277,7 @@
         const btn = document.createElement('button');
         btn.className = `hour-btn ${i === 8 ? 'neon-red-btn border' : 'bg-slate-800 border border-slate-700 hover:border-rose-500/50 text-slate-300'} py-1 text-[11px] font-medium rounded transition-all`;
         btn.innerText = hourStr;
-        btn.onclick = function() { selectHour(this); };
+        btn.onclick = function () { selectHour(this); };
         container.appendChild(btn);
       }
     }
@@ -301,43 +305,43 @@
 
     async function fetchData() {
       try {
-        const response = await fetch(CSV_URL);
-        if (!response.ok) throw new Error("Falha na conexão");
-        
-        const data = await response.text();
-        const rows = data.split('\n').map(row => row.trim()).filter(row => row.length > 0);
+        const response = await fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' });
+        if (!response.ok) throw new Error('Falha na conexão');
 
+        const data = await response.text();
+        const rows = data.split(/\r?\n/).map(r => r.trim()).filter(r => r.length > 0);
         if (rows.length === 0) return;
 
         let totalLucro = 0;
         let totalBacktests = 0;
         let sumPF = 0;
         let sumDD = 0;
-        let cumulativePoints = [];
-        let labelsList = [];
+        const cumulativePoints = [];
+        const labelsList = [];
 
         const tableBody = document.getElementById('table-body');
         tableBody.innerHTML = '';
 
-        const startIdx = isNaN(parseFloat(rows[0].split(',')[1])) ? 1 : 0;
+        // Pula o cabeçalho se a segunda coluna da primeira linha não for número
+        const firstCols = parseCSVLine(rows[0]);
+        const startIdx = /\d/.test(firstCols[1] || '') && !isNaN(cleanNum(firstCols[1])) && /^[\s$\-+0-9.,]+$/.test(firstCols[1]) ? 0 : 1;
 
         for (let i = startIdx; i < rows.length; i++) {
-          const cols = rows[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+          const cols = parseCSVLine(rows[i]);
           if (cols.length < 5) continue;
 
-          // Mapeamento correto de acordo com os campos exportados do MT5
-          const dataHora    = cols[0] || '-';
-          const lucroLiquido= cleanNum(cols[1]);
-          const lucroBruto  = cleanNum(cols[2]);
-          const perdaBruta  = cleanNum(cols[3]);
-          const profitFactor= cleanNum(cols[4]);
-          const drawdown    = cleanNum(cols[5]);
-          const operacoes   = cols[6] || '-';
-          const pctVitoria  = cols[7] || '-';
-          const pctDerrota  = cols[8] || '-';
-          const ativo       = cols[9] || 'XAUUSD';
-          const timeframe   = cols[10] || '-';
-          const estrategia  = cols[11] || '-';
+          const dataHora     = cols[0] || '-';
+          const lucroLiquido = cleanNum(cols[1]);
+          const lucroBruto   = cleanNum(cols[2]);
+          const perdaBruta   = cleanNum(cols[3]);
+          const profitFactor = cleanNum(cols[4]);
+          const drawdown     = cleanNum(cols[5]);
+          const operacoes    = cols[6] ? Math.round(cleanNum(cols[6])) : '-';
+          const pctVitoria   = cols[7] ? cleanNum(cols[7]).toFixed(2) + '%' : '-';
+          const pctDerrota   = cols[8] ? cleanNum(cols[8]).toFixed(2) + '%' : '-';
+          const ativo        = cols[9] || 'XAUUSD';
+          const timeframe    = cols[10] || '-';
+          const estrategia   = cols[11] || '-';
 
           totalLucro += lucroLiquido;
           totalBacktests++;
@@ -348,14 +352,14 @@
           labelsList.push(`Run #${totalBacktests}`);
 
           const tr = document.createElement('tr');
-          tr.className = "hover:bg-slate-800/40 transition text-slate-300";
+          tr.className = 'hover:bg-slate-800/40 transition text-slate-300';
           const lucroClass = lucroLiquido >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
 
           tr.innerHTML = `
             <td class="py-3 px-3 text-slate-400">${dataHora}</td>
-            <td class="py-3 px-3 ${lucroClass}">$ ${lucroLiquido.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td class="py-3 px-3">$ ${lucroBruto.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-            <td class="py-3 px-3 text-rose-400">$ ${perdaBruta.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            <td class="py-3 px-3 ${lucroClass}">$ ${fmtMoney(lucroLiquido)}</td>
+            <td class="py-3 px-3">$ ${fmtMoney(lucroBruto)}</td>
+            <td class="py-3 px-3 text-rose-400">$ ${fmtMoney(perdaBruta)}</td>
             <td class="py-3 px-3 font-semibold text-cyan-400">${profitFactor.toFixed(2)}</td>
             <td class="py-3 px-3 text-rose-400">${drawdown.toFixed(2)}%</td>
             <td class="py-3 px-3">${operacoes}</td>
@@ -370,7 +374,7 @@
 
         if (totalBacktests > 0) {
           const kpiProfit = document.getElementById('kpi-net-profit');
-          kpiProfit.innerText = `$ ${totalLucro.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+          kpiProfit.innerText = `$ ${fmtMoney(totalLucro)}`;
           kpiProfit.className = `text-3xl font-bold tracking-tight ${totalLucro >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
 
           document.getElementById('kpi-total-tests').innerText = totalBacktests;
@@ -427,7 +431,7 @@
       }
     }
 
-    window.onload = function() {
+    window.onload = function () {
       renderHourButtons();
       initChart();
       fetchData();
