@@ -38,9 +38,66 @@
     ::-webkit-scrollbar-thumb:hover { background: #334155; }
     .glow-cyan { box-shadow: 0 0 15px rgba(0, 242, 254, 0.15); }
     .neon-red-text { color: #ff2a5f; text-shadow: 0 0 8px rgba(255, 42, 95, 0.8), 0 0 18px rgba(255, 42, 95, 0.5); }
-    .neon-red-btn { background-color: rgba(225, 29, 72, 0.9); color: #ffffff; box-shadow: 0 0 12px rgba(244, 63, 94, 0.6); border-color: #f43f5e !important; }
-    select option { background-color: #111823; color: #e2e8f0; }
     table th, table td { text-align: center; vertical-align: middle; white-space: nowrap; }
+
+    /* ========== PAINEL DE FILTROS (só design) ========== */
+    .fcard {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.55));
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .fcard-head { display: flex; align-items: center; gap: 10px; }
+    .fcard-icon {
+      width: 32px; height: 32px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      color: #fb7185; font-size: 13px;
+    }
+    .fcard-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #cbd5e1;
+    }
+
+    .chip {
+      background: #0b1220;
+      border: 1px solid #1e293b;
+      color: #94a3b8;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      text-align: center;
+    }
+    .chip:hover {
+      color: #ffffff;
+      border-color: rgba(244, 63, 94, 0.55);
+      background: rgba(244, 63, 94, 0.08);
+      transform: translateY(-1px);
+    }
+    .chip.active {
+      color: #ffffff;
+      border-color: #f43f5e;
+      background: linear-gradient(135deg, #e11d48, #f43f5e);
+      box-shadow: 0 0 14px rgba(244, 63, 94, 0.55);
+    }
+
+    .tf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .tf-grid .chip { padding: 14px 0; font-size: 15px; }
+
+    .hour-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+    .hour-grid .chip { padding: 8px 0; font-size: 11px; border-radius: 8px; }
+
+    .period-wrap { display: flex; flex-wrap: wrap; gap: 10px; }
+    .period-wrap .chip { padding: 11px 18px; font-size: 13px; border-radius: 999px; }
+
+    @media (max-width: 520px) {
+      .hour-grid { grid-template-columns: repeat(4, 1fr); }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between overflow-x-hidden text-sm">
@@ -130,7 +187,7 @@
       </div>
     </div>
 
-    <!-- FILTROS -->
+    <!-- PAINEL DE FILTROS -->
     <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
         <div class="flex items-center space-x-2">
@@ -140,42 +197,42 @@
         <span class="text-xs text-slate-400">Selecione para filtrar estratégias</span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="fa-regular fa-clock text-rose-400"></i> Timeframe
-            </span>
+        <!-- TIMEFRAME -->
+        <div class="fcard">
+          <div class="fcard-head">
+            <div class="fcard-icon"><i class="fa-regular fa-clock"></i></div>
+            <span class="fcard-title">Timeframe</span>
           </div>
-          <div class="grid grid-cols-3 gap-2" id="tf-container">
-            <button onclick="selectTimeframe(this)" class="tf-btn bg-slate-800 border border-slate-700 hover:border-rose-500/50 py-2 rounded-lg font-medium text-xs text-slate-300 transition-all">M1</button>
-            <button onclick="selectTimeframe(this)" class="tf-btn neon-red-btn border py-2 rounded-lg font-medium text-xs transition-all">M5</button>
-            <button onclick="selectTimeframe(this)" class="tf-btn bg-slate-800 border border-slate-700 hover:border-rose-500/50 py-2 rounded-lg font-medium text-xs text-slate-300 transition-all">M15</button>
+          <div class="tf-grid" id="tf-container">
+            <button onclick="selectTimeframe(this)" class="tf-btn chip">M1</button>
+            <button onclick="selectTimeframe(this)" class="tf-btn chip active">M5</button>
+            <button onclick="selectTimeframe(this)" class="tf-btn chip">M15</button>
           </div>
         </div>
 
-        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="fa-solid fa-hourglass-half text-rose-400"></i> Horário (Hora de Início)
-            </span>
+        <!-- HORÁRIO -->
+        <div class="fcard">
+          <div class="fcard-head">
+            <div class="fcard-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+            <span class="fcard-title">Horário (Hora de Início)</span>
           </div>
-          <div class="grid grid-cols-6 gap-1.5 max-h-36 overflow-y-auto pr-1" id="hour-container"></div>
+          <div class="hour-grid" id="hour-container"></div>
         </div>
 
-        <div class="bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="fa-regular fa-calendar-days text-rose-400"></i> Período
-            </span>
+        <!-- PERÍODO -->
+        <div class="fcard">
+          <div class="fcard-head">
+            <div class="fcard-icon"><i class="fa-regular fa-calendar-days"></i></div>
+            <span class="fcard-title">Período</span>
           </div>
-          <div class="flex flex-wrap gap-1.5" id="period-container">
-            <button onclick="selectPeriod(this)" class="period-btn neon-red-btn border px-3 py-1.5 rounded-lg font-medium text-xs transition-all">1 Ano</button>
-            <button onclick="selectPeriod(this)" class="period-btn bg-slate-800 border border-slate-700 hover:border-rose-500/50 px-3 py-1.5 rounded-lg font-medium text-xs text-slate-300 transition-all">6 Meses</button>
-            <button onclick="selectPeriod(this)" class="period-btn bg-slate-800 border border-slate-700 hover:border-rose-500/50 px-3 py-1.5 rounded-lg font-medium text-xs text-slate-300 transition-all">3 Meses</button>
-            <button onclick="selectPeriod(this)" class="period-btn bg-slate-800 border border-slate-700 hover:border-rose-500/50 px-3 py-1.5 rounded-lg font-medium text-xs text-slate-300 transition-all">1 Mês</button>
-            <button onclick="selectPeriod(this)" class="period-btn bg-slate-800 border border-slate-700 hover:border-rose-500/50 px-3 py-1.5 rounded-lg font-medium text-xs text-slate-300 transition-all">1 Semana</button>
+          <div class="period-wrap" id="period-container">
+            <button onclick="selectPeriod(this)" class="period-btn chip active">1 Ano</button>
+            <button onclick="selectPeriod(this)" class="period-btn chip">6 Meses</button>
+            <button onclick="selectPeriod(this)" class="period-btn chip">3 Meses</button>
+            <button onclick="selectPeriod(this)" class="period-btn chip">1 Mês</button>
+            <button onclick="selectPeriod(this)" class="period-btn chip">1 Semana</button>
           </div>
         </div>
 
@@ -272,7 +329,7 @@
       for (let i = 0; i < 24; i++) {
         const hourStr = i < 10 ? `0${i}:00` : `${i}:00`;
         const btn = document.createElement('button');
-        btn.className = `hour-btn ${i === 8 ? 'neon-red-btn border' : 'bg-slate-800 border border-slate-700 hover:border-rose-500/50 text-slate-300'} py-1 text-[11px] font-medium rounded transition-all`;
+        btn.className = `hour-btn chip ${i === 8 ? 'active' : ''}`;
         btn.innerText = hourStr;
         btn.onclick = function () { selectHour(this); };
         container.appendChild(btn);
@@ -280,24 +337,18 @@
     }
 
     function selectTimeframe(el) {
-      document.querySelectorAll('.tf-btn').forEach(btn => {
-        btn.className = 'tf-btn bg-slate-800 border border-slate-700 hover:border-rose-500/50 py-2 rounded-lg font-medium text-xs text-slate-300 transition-all';
-      });
-      el.className = 'tf-btn neon-red-btn border py-2 rounded-lg font-medium text-xs transition-all';
+      document.querySelectorAll('.tf-btn').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
     }
 
     function selectHour(el) {
-      document.querySelectorAll('.hour-btn').forEach(btn => {
-        btn.className = 'hour-btn bg-slate-800 border border-slate-700 hover:border-rose-500/50 text-slate-300 py-1 text-[11px] font-medium rounded transition-all';
-      });
-      el.className = 'hour-btn neon-red-btn border py-1 text-[11px] font-medium rounded transition-all';
+      document.querySelectorAll('.hour-btn').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
     }
 
     function selectPeriod(el) {
-      document.querySelectorAll('.period-btn').forEach(btn => {
-        btn.className = 'period-btn bg-slate-800 border border-slate-700 hover:border-rose-500/50 px-3 py-1.5 rounded-lg font-medium text-xs text-slate-300 transition-all';
-      });
-      el.className = 'period-btn neon-red-btn border px-3 py-1.5 rounded-lg font-medium text-xs transition-all';
+      document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
     }
 
     async function fetchData() {
