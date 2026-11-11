@@ -64,6 +64,16 @@
       font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #94a3b8;
       line-height: 1.7; padding: 14px 16px; letter-spacing: 0;
     }
+    .custom-table.tight { border-spacing: 0; }
+    .custom-table.tight tr.pt td { border-bottom: none; border-bottom-left-radius: 0 !important; border-bottom-right-radius: 0 !important; }
+    .custom-table.tight tr.pb td {
+      border-top: none; border-left: 1.5px solid #25354e; border-right: 1.5px solid #25354e;
+      border-radius: 0 0 12px 12px; min-width: 0; max-width: none; padding: 4px 18px 16px;
+    }
+    .custom-table.tight tr.sp td { background: none; border: none !important; padding: 0; height: 18px; border-radius: 0 !important; box-shadow: none !important; }
+    .custom-table.tight tr.pt:hover td, .custom-table.tight tr.pt:hover + tr.pb td {
+      background-color: #1b2942; border-color: #00f2fe; box-shadow: none;
+    }
     .ptag {
       display: inline-block; background: #0b1220; border: 1px solid #25354e; border-radius: 6px;
       padding: 1px 6px; margin: 2px 3px 2px 0; color: #cbd5e1;
@@ -238,7 +248,7 @@
       const isOp = (p === 'op');
       const head = ['Data / Hora', 'Lucro Líquido', 'Drawdown', 'Maior Lucro', 'Maior Perda',
         'Ganhos Consec.', 'Perdas Consec.', 'Operações', 'Sharpe', '% Vitória', 'Fator EA', 'Timeframe']
-        .map(h => `<th>${h}</th>`).join('') + (isOp ? '<th>Parâmetros</th>' : '<th></th>');
+        .map(h => `<th>${h}</th>`).join('') + '<th></th>';
 
       const controls = isOp ? `
         <div class="flex flex-wrap items-center gap-4">
@@ -363,7 +373,7 @@
         </div>
         ${controls}
         <div class="overflow-x-auto">
-          <table class="custom-table text-xs">
+          <table class="custom-table text-xs ${isOp ? 'tight' : ''}">
             <thead><tr class="text-cyan-400 font-semibold uppercase">${head}</tr></thead>
             <tbody id="${p}-body" class="font-medium"></tbody>
           </table>
@@ -472,8 +482,10 @@
     }
 
     // ---------- Apagar (só backtests individuais) ----------
-    function askDelete(idx) {
-      rowToDelete = S.bt.visible[idx];
+    let deleteFrom = 'bt';
+    function askDelete(p, idx) {
+      deleteFrom = p;
+      rowToDelete = S[p].visible[idx];
       if (!rowToDelete) return;
       const m = document.getElementById('del-modal');
       m.classList.remove('hidden');
@@ -497,17 +509,18 @@
       try {
         const res = await fetch(DELETE_URL, {
           method: 'POST',
-          body: JSON.stringify({
-            token: DELETE_TOKEN, dataHora: r.dataHora, lucro: r.lucroLiquido,
-            operacoes: r.operacoes, timeframe: r.timeframe
-          })
+          body: JSON.stringify(deleteFrom === 'op'
+            ? { token: DELETE_TOKEN, passe: r.passe }
+            : { token: DELETE_TOKEN, dataHora: r.dataHora, lucro: r.lucroLiquido,
+                operacoes: r.operacoes, timeframe: r.timeframe })
         });
         const out = await res.json();
         if (!out.ok) { alert('Não foi possível apagar: ' + (out.erro || 'erro desconhecido')); return; }
         deletedKeys.add(rowKey(r));
-        S.bt.rows.splice(S.bt.rows.indexOf(r), 1);
-        document.getElementById('count-bt').innerText = S.bt.rows.length;
-        render('bt');
+        const k = deleteFrom;
+        S[k].rows.splice(S[k].rows.indexOf(r), 1);
+        document.getElementById('count-' + k).innerText = S[k].rows.length;
+        render(k);
       } catch (e) {
         alert('Erro ao apagar. Tente de novo.');
       }
@@ -548,6 +561,7 @@
           };
 
           if ((cols[12] || '').trim().toUpperCase() === 'OTIMIZACAO') {
+            base.passe = (cols[13] || '').trim();
             base.params = parseParams(cols[14] || '');
             base.horas = horasDoPasse(base.params);
             parsedOpt.push(base);
@@ -635,13 +649,13 @@
         labels.push(isOp ? `Passe #${idx + 1}` : `Run #${idx + 1}`);
 
         const lucroClass = r.lucroLiquido >= 0 ? 'val-positive font-num' : 'val-negative font-num';
-        const ultima = isOp
-          ? `<td class="params-cell">${names.filter(n => n in r.params)
+        const ultima = `<td><button class="del-btn" onclick="askDelete('${p}',${idx})" title="Apagar resultado" aria-label="Apagar resultado">✕</button></td>`;
+        const tags = isOp
+          ? names.filter(n => n in r.params)
               .map(n => `<span class="ptag">${esc(n.replace(/^Inp/, ''))}=<b>${esc(r.params[n])}</b></span>`).join('')
-              || '<span class="text-slate-600">—</span>'}</td>`
-          : `<td><button class="del-btn" onclick="askDelete(${idx})" title="Apagar resultado" aria-label="Apagar resultado">✕</button></td>`;
+          : '';
 
-        parts.push(`<tr class="text-slate-200">
+        parts.push(`<tr class="${isOp ? 'pt ' : ''}text-slate-200">
           <td class="font-mono text-slate-300 font-semibold">${esc(r.dataHora)}</td>
           <td class="${lucroClass}">$ ${fmtMoney(r.lucroLiquido)}</td>
           <td class="font-num val-negative">${r.drawdown.toFixed(2)}%</td>
@@ -656,6 +670,9 @@
           <td class="font-mono font-bold text-amber-400">${esc(r.timeframe)}</td>
           ${ultima}
         </tr>`);
+        if (isOp) {
+          parts.push(`<tr class="pb"><td colspan="13" class="params-cell"><span class="text-slate-500 font-bold mr-2">PARÂMETROS</span>${tags || '<span class="text-slate-600">—</span>'}</td></tr><tr class="sp"><td colspan="13"></td></tr>`);
+        }
       });
       body.innerHTML = parts.join('');
 
