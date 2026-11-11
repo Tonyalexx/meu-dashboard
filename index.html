@@ -74,6 +74,16 @@
     .custom-table.tight tr.pt:hover td, .custom-table.tight tr.pt:hover + tr.pb td {
       background-color: #1b2942; border-color: #00f2fe; box-shadow: none;
     }
+
+    /* ===== LINHA SELECIONADA (clique) ===== */
+    .custom-table tbody tr.pt, .custom-table tbody tr.pb { cursor: pointer; }
+    .custom-table:not(.tight) tbody tr { cursor: pointer; }
+    .custom-table tbody tr.sel td {
+      background-color: #1b2942; border-color: #00f2fe;
+      box-shadow: 0 0 18px rgba(0, 242, 254, 0.25);
+    }
+    .custom-table.tight tbody tr.sel td { box-shadow: none; }
+
     .ptag {
       display: inline-block; background: #0b1220; border: 1px solid #25354e; border-radius: 6px;
       padding: 1px 6px; margin: 2px 3px 2px 0; color: #cbd5e1;
@@ -218,8 +228,8 @@
 
     // Estado de cada visão: bt = backtests (individual), op = otimização (genética)
     const S = {
-      bt: { rows: [], visible: [], tf: null, hour: null, period: null, chart: null },
-      op: { rows: [], visible: [], tf: null, hour: null, period: null, chart: null,
+      bt: { rows: [], visible: [], tf: null, hour: null, period: null, chart: null, selected: null },
+      op: { rows: [], visible: [], tf: null, hour: null, period: null, chart: null, selected: null,
             sort: 'lucroLiquido', limit: 100, allParams: false }
     };
 
@@ -230,7 +240,7 @@
         chartSub: 'Evolução dos resultados em tempo real baseada nos envios do MetaTrader 5',
         chartLabel: 'Lucro Líquido Acumulado',
         tableTitle: 'Resultados Detalhados dos Backtests',
-        tableSub: 'Sincronizado automaticamente da planilha do Google Sheets'
+        tableSub: 'Sincronizado automaticamente da planilha do Google Sheets. Clique em um resultado para ver só ele.'
       },
       op: {
         kpi1: 'Melhor Lucro Líquido', kpi2: 'Total de Passes da Genética',
@@ -238,7 +248,7 @@
         chartSub: 'Cada ponto é um passe da otimização genética, na mesma ordem da tabela abaixo',
         chartLabel: 'Lucro Líquido do Passe',
         tableTitle: 'Resultados Detalhados da Otimização (Genética)',
-        tableSub: 'Cada linha é um passe do algoritmo genético do MT5, com os parâmetros usados'
+        tableSub: 'Cada linha é um passe do algoritmo genético do MT5. Clique em um passe para ver só ele.'
       }
     };
 
@@ -447,6 +457,9 @@
       return [r.dataHora, r.timeframe, r.lucroLiquido.toFixed(2), r.operacoes].join('|');
     }
 
+    // Chave única usada para marcar o resultado clicado
+    function selKey(r) { return rowKey(r) + '|' + (r.passe || ''); }
+
     // ---------- Abas ----------
     function switchTab(t) {
       currentTab = t;
@@ -481,7 +494,16 @@
       render('op');
     }
 
-    // ---------- Apagar (só backtests individuais) ----------
+    // ---------- Clicar em um resultado ----------
+    function selectRow(p, idx) {
+      const r = S[p].visible[idx];
+      if (!r) return;
+      const k = selKey(r);
+      S[p].selected = (S[p].selected === k) ? null : k;
+      render(p);
+    }
+
+    // ---------- Apagar ----------
     let deleteFrom = 'bt';
     function askDelete(p, idx) {
       deleteFrom = p;
@@ -606,6 +628,9 @@
       }
       st.visible = rows;
 
+      // se o selecionado sumiu (filtro, apagado...), limpa a seleção
+      if (st.selected && !rows.some(r => selKey(r) === st.selected)) st.selected = null;
+
       // Parâmetros a exibir (só otimização)
       let names = [];
       if (isOp) {
@@ -627,9 +652,6 @@
         if (info) info.innerText = `Mostrando ${rows.length} de ${totalFiltrado} passes`;
       }
 
-      let totalLucro = 0, sumSharpe = 0, sumDD = 0, melhor = null;
-      const points = [];
-      const labels = [];
       const body = document.getElementById(`${p}-body`);
       const colSpan = 13;
       const parts = [];
@@ -640,22 +662,19 @@
         parts.push(`<tr><td colspan="${colSpan}" class="text-slate-400 font-mono">${msg}</td></tr>`);
       }
 
+      // ---------- Tabela ----------
       rows.forEach((r, idx) => {
-        totalLucro += r.lucroLiquido;
-        sumSharpe += r.sharpe;
-        sumDD += r.drawdown;
-        if (melhor === null || r.lucroLiquido > melhor) melhor = r.lucroLiquido;
-        points.push(isOp ? r.lucroLiquido : totalLucro);
-        labels.push(isOp ? `Passe #${idx + 1}` : `Run #${idx + 1}`);
-
+        const isSel = st.selected === selKey(r);
+        const selCls = isSel ? ' sel' : '';
+        const click = `onclick="selectRow('${p}',${idx})"`;
         const lucroClass = r.lucroLiquido >= 0 ? 'val-positive font-num' : 'val-negative font-num';
-        const ultima = `<td><button class="del-btn" onclick="askDelete('${p}',${idx})" title="Apagar resultado" aria-label="Apagar resultado">✕</button></td>`;
+        const ultima = `<td><button class="del-btn" onclick="event.stopPropagation(); askDelete('${p}',${idx})" title="Apagar resultado" aria-label="Apagar resultado">✕</button></td>`;
         const tags = isOp
           ? names.filter(n => n in r.params)
               .map(n => `<span class="ptag">${esc(n.replace(/^Inp/, ''))}=<b>${esc(r.params[n])}</b></span>`).join('')
           : '';
 
-        parts.push(`<tr class="${isOp ? 'pt ' : ''}text-slate-200">
+        parts.push(`<tr class="${isOp ? 'pt ' : ''}text-slate-200${selCls}" ${click}>
           <td class="font-mono text-slate-300 font-semibold">${esc(r.dataHora)}</td>
           <td class="${lucroClass}">$ ${fmtMoney(r.lucroLiquido)}</td>
           <td class="font-num val-negative">${r.drawdown.toFixed(2)}%</td>
@@ -671,24 +690,39 @@
           ${ultima}
         </tr>`);
         if (isOp) {
-          parts.push(`<tr class="pb"><td colspan="13" class="params-cell"><span class="text-slate-500 font-bold mr-2">PARÂMETROS</span>${tags || '<span class="text-slate-600">—</span>'}</td></tr><tr class="sp"><td colspan="13"></td></tr>`);
+          parts.push(`<tr class="pb${selCls}" ${click}><td colspan="13" class="params-cell"><span class="text-slate-500 font-bold mr-2">PARÂMETROS</span>${tags || '<span class="text-slate-600">—</span>'}</td></tr><tr class="sp"><td colspan="13"></td></tr>`);
         }
       });
       body.innerHTML = parts.join('');
 
-      // Cartões do topo
-      const total = rows.length;
+      // ---------- Cartões + gráfico (só o selecionado, se houver) ----------
+      const calc = st.selected ? rows.filter(r => selKey(r) === st.selected) : rows;
+      let totalLucro = 0, sumSharpe = 0, sumDD = 0, melhor = null;
+      const points = [];
+      const labels = [];
+      calc.forEach(r => {
+        const n = rows.indexOf(r) + 1;
+        totalLucro += r.lucroLiquido;
+        sumSharpe += r.sharpe;
+        sumDD += r.drawdown;
+        if (melhor === null || r.lucroLiquido > melhor) melhor = r.lucroLiquido;
+        points.push(isOp ? r.lucroLiquido : totalLucro);
+        labels.push(isOp ? `Passe #${n}` : `Run #${n}`);
+      });
+
+      const total = calc.length;
       const kpiValor = isOp ? (melhor === null ? 0 : melhor) : totalLucro;
       const kpiProfit = document.getElementById(`${p}-kpi-profit`);
       kpiProfit.innerText = `$ ${fmtMoney(kpiValor)}`;
       kpiProfit.className = `text-3xl font-extrabold font-mono tracking-tight ${total === 0 ? 'text-white' : (kpiValor >= 0 ? 'text-[#00ff87]' : 'text-[#ff1744]')}`;
-      document.getElementById(`${p}-kpi-total`).innerText = isOp ? totalFiltrado : total;
+      document.getElementById(`${p}-kpi-total`).innerText = st.selected ? 1 : (isOp ? totalFiltrado : rows.length);
       document.getElementById(`${p}-kpi-sharpe`).innerText = total ? (sumSharpe / total).toFixed(2) : '0.00';
       document.getElementById(`${p}-kpi-dd`).innerText = total ? `${(sumDD / total).toFixed(2)}%` : '0.00%';
 
       if (st.chart) {
         st.chart.data.labels = labels;
         st.chart.data.datasets[0].data = points;
+        st.chart.data.datasets[0].pointRadius = (points.length === 1) ? 7 : 3;
         st.chart.update();
       }
     }
