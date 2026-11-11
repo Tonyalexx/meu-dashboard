@@ -8,22 +8,18 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
           colors: {
-            darkBg: '#090d14',
-            cardBg: '#111823',
-            cardBorder: '#1e293b',
-            accentCyan: '#00f2fe',
-            accentBlue: '#0284c7',
-            accentGreen: '#10b981',
-            accentRed: '#f43f5e',
+            darkBg: '#090d14', cardBg: '#111823', cardBorder: '#1e293b',
+            accentCyan: '#00f2fe', accentBlue: '#0284c7',
+            accentGreen: '#00ff87', accentRed: '#ff1744',
           }
         }
       }
@@ -32,113 +28,102 @@
 
   <style>
     body { background-color: #090d14; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+    .font-num { font-family: 'Space Grotesk', sans-serif; font-size: 16px; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #090d14; }
     ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #334155; }
-    .glow-cyan { box-shadow: 0 0 15px rgba(0, 242, 254, 0.15); }
-    .neon-red-text { color: #ff2a5f; text-shadow: 0 0 8px rgba(255, 42, 95, 0.8), 0 0 18px rgba(255, 42, 95, 0.5); }
-    table th, table td { text-align: center; vertical-align: middle; white-space: nowrap; }
+    .glow-cyan { box-shadow: 0 0 18px rgba(0, 242, 254, 0.2); }
+    .neon-red-text { color: #ff1744; text-shadow: 0 0 10px rgba(255, 23, 68, 0.9), 0 0 20px rgba(255, 23, 68, 0.6); }
 
-    /* ========== PAINEL DE FILTROS ========== */
+    /* ===== TABELA EM RETÂNGULOS (CARDS) ===== */
+    .custom-table { border-collapse: separate; border-spacing: 0 18px; width: 100%; }
+    .custom-table th {
+      text-align: center; vertical-align: middle; white-space: nowrap;
+      padding: 12px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    }
+    .custom-table td {
+      text-align: center; vertical-align: middle; white-space: nowrap;
+      padding: 22px 18px; background-color: #0f1a2b;
+      font-family: 'Space Grotesk', sans-serif; font-size: 16px; letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+      border-top: 1.5px solid #25354e; border-bottom: 1.5px solid #25354e;
+    }
+    .custom-table tbody tr td:first-child {
+      border-left: 1.5px solid #25354e; border-top-left-radius: 12px; border-bottom-left-radius: 12px;
+    }
+    .custom-table tbody tr td:last-child {
+      border-right: 1.5px solid #25354e; border-top-right-radius: 12px; border-bottom-right-radius: 12px;
+    }
+    .custom-table tbody tr:hover td {
+      background-color: #1b2942; border-color: #00f2fe;
+      box-shadow: 0 4px 22px rgba(0, 242, 254, 0.15); transition: all 0.2s ease;
+    }
+    .val-positive { color: #00ff87; font-weight: 700; }
+    .val-negative { color: #ff1744; font-weight: 700; }
+    .val-cyan { color: #00f2fe; font-weight: 700; }
+
+    /* ===== BOTÃO APAGAR (bolinha vermelha com X) ===== */
+    .del-btn {
+      width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
+      background: #ff1744; color: #fff; font-size: 15px; font-weight: 700; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center; transition: all 0.18s ease;
+    }
+    .del-btn:hover { transform: scale(1.15); box-shadow: 0 0 14px rgba(255, 23, 68, 0.7); }
+
+    /* ===== PAINEL DE FILTROS ===== */
     .fcard {
       background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.55));
-      border: 1px solid #1e293b;
-      border-radius: 16px;
-      padding: 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+      border: 1px solid #1e293b; border-radius: 16px; padding: 18px;
+      display: flex; flex-direction: column; gap: 16px;
     }
     .fcard-head { display: flex; align-items: center; gap: 10px; }
     .fcard-icon {
       width: 32px; height: 32px; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(244, 63, 94, 0.12);
-      border: 1px solid rgba(244, 63, 94, 0.35);
+      background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.35);
       color: #fb7185; font-size: 13px;
     }
-    .fcard-title {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
-      text-transform: uppercase; color: #cbd5e1;
-    }
-
-    /* Botão OFF (pequeno, do lado direito do título) */
+    .fcard-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #cbd5e1; }
     .off-btn {
-      margin-left: auto;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: #0b1220;
-      border: 1px solid #1e293b;
-      color: #64748b;
-      cursor: pointer;
-      transition: all 0.18s ease;
+      margin-left: auto; font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+      padding: 4px 10px; border-radius: 999px; background: #0b1220;
+      border: 1px solid #1e293b; color: #64748b; cursor: pointer; transition: all 0.18s ease;
     }
-    .off-btn:hover {
-      color: #ffffff;
-      border-color: rgba(244, 63, 94, 0.55);
-    }
+    .off-btn:hover { color: #fff; border-color: rgba(244, 63, 94, 0.55); }
     .off-btn.active {
-      color: #ffffff;
-      border-color: #f43f5e;
-      background: linear-gradient(135deg, #e11d48, #f43f5e);
-      box-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
+      color: #fff; border-color: #f43f5e;
+      background: linear-gradient(135deg, #e11d48, #f43f5e); box-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
     }
-
     .chip {
-      background: #0b1220;
-      border: 1px solid #1e293b;
-      color: #94a3b8;
-      font-weight: 600;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.18s ease;
-      text-align: center;
+      background: #0b1220; border: 1px solid #1e293b; color: #94a3b8; font-weight: 600;
+      border-radius: 10px; cursor: pointer; transition: all 0.18s ease; text-align: center;
     }
-    .chip:hover {
-      color: #ffffff;
-      border-color: rgba(244, 63, 94, 0.55);
-      background: rgba(244, 63, 94, 0.08);
-      transform: translateY(-1px);
-    }
+    .chip:hover { color: #fff; border-color: rgba(244, 63, 94, 0.55); background: rgba(244, 63, 94, 0.08); transform: translateY(-1px); }
     .chip.active {
-      color: #ffffff;
-      border-color: #f43f5e;
-      background: linear-gradient(135deg, #e11d48, #f43f5e);
-      box-shadow: 0 0 14px rgba(244, 63, 94, 0.55);
+      color: #fff; border-color: #f43f5e;
+      background: linear-gradient(135deg, #e11d48, #f43f5e); box-shadow: 0 0 14px rgba(244, 63, 94, 0.55);
     }
-
     .tf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .tf-grid .chip { padding: 14px 0; font-size: 15px; }
-
     .hour-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
     .hour-grid .chip { padding: 8px 0; font-size: 11px; border-radius: 8px; }
-
     .period-wrap { display: flex; flex-wrap: wrap; gap: 10px; }
     .period-wrap .chip { padding: 11px 18px; font-size: 13px; border-radius: 999px; }
-
-    @media (max-width: 520px) {
-      .hour-grid { grid-template-columns: repeat(4, 1fr); }
-    }
+    @media (max-width: 520px) { .hour-grid { grid-template-columns: repeat(4, 1fr); } }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between overflow-x-hidden text-sm">
 
   <!-- HEADER -->
   <header class="bg-cardBg border-b border-cardBorder px-6 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50">
-    <div class="flex items-center space-x-6">
-      <div class="flex items-center space-x-2">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-600 to-red-500 flex items-center justify-center text-white font-bold shadow-lg shadow-rose-500/40">
-          <i class="fa-solid font-bold fa-compass"></i>
-        </div>
-        <span class="text-xl font-extrabold tracking-wider neon-red-text">XAUUSD</span>
-        <span class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">MT5 Live Dashboard</span>
+    <div class="flex items-center space-x-2">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-600 to-red-500 flex items-center justify-center text-white font-bold shadow-lg shadow-rose-500/40">
+        <i class="fa-solid font-bold fa-compass"></i>
       </div>
+      <span class="text-xl font-extrabold tracking-wider neon-red-text">XAUUSD</span>
+      <span class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">MT5 Live Dashboard</span>
     </div>
-
     <div class="flex items-center space-x-3">
       <span id="sync-status" class="flex items-center space-x-1.5 text-xs text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-500/40">
         <i class="fa-solid fa-circle-dot text-[10px] animate-pulse"></i>
@@ -156,60 +141,43 @@
 
     <!-- KPIs -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-      <div class="bg-cardBg border border-cyan-500/30 rounded-xl p-4 flex justify-between items-start relative overflow-hidden glow-cyan">
+      <div class="bg-cardBg border border-cyan-500/30 rounded-xl p-4 flex justify-between items-start glow-cyan">
         <div class="space-y-1">
           <p class="text-xs uppercase font-semibold text-slate-400">Lucro Líquido Acumulado</p>
-          <h2 class="text-3xl font-bold text-white tracking-tight" id="kpi-net-profit">$ 0.00</h2>
+          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-net-profit">$ 0.00</h2>
         </div>
-        <div class="p-2.5 rounded-lg bg-cyan-950/50 border border-cyan-500/40 text-cyan-400">
-          <i class="fa-solid fa-arrow-trend-up text-lg"></i>
-        </div>
+        <div class="p-2.5 rounded-lg bg-cyan-950/50 border border-cyan-500/40 text-cyan-400"><i class="fa-solid fa-arrow-trend-up text-lg"></i></div>
       </div>
-
-      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex justify-between items-start relative overflow-hidden">
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex justify-between items-start">
         <div class="space-y-1">
           <p class="text-xs uppercase font-semibold text-slate-400">Total de Backtests</p>
-          <h2 class="text-3xl font-bold text-white tracking-tight" id="kpi-total-tests">0</h2>
+          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-total-tests">0</h2>
         </div>
-        <div class="p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">
-          <i class="fa-solid fa-database text-lg"></i>
-        </div>
+        <div class="p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300"><i class="fa-solid fa-database text-lg"></i></div>
       </div>
-
-      <div class="bg-cardBg border border-emerald-500/30 rounded-xl p-4 flex justify-between items-start relative overflow-hidden">
+      <div class="bg-cardBg border border-emerald-500/30 rounded-xl p-4 flex justify-between items-start">
         <div class="space-y-1">
           <p class="text-xs uppercase font-semibold text-slate-400">Sharpe Médio</p>
-          <h2 class="text-3xl font-bold text-white tracking-tight" id="kpi-sharpe">0.00</h2>
+          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-sharpe">0.00</h2>
         </div>
-        <div class="p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-emerald-400">
-          <i class="fa-solid fa-shield-halved text-lg"></i>
-        </div>
+        <div class="p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-[#00ff87]"><i class="fa-solid fa-shield-halved text-lg"></i></div>
       </div>
-
-      <div class="bg-cardBg border border-rose-500/30 rounded-xl p-4 flex justify-between items-start relative overflow-hidden">
+      <div class="bg-cardBg border border-rose-500/30 rounded-xl p-4 flex justify-between items-start">
         <div class="space-y-1">
           <p class="text-xs uppercase font-semibold text-slate-400">Rebaixamento Médio</p>
-          <h2 class="text-3xl font-bold text-white tracking-tight" id="kpi-drawdown">0.00%</h2>
+          <h2 class="text-3xl font-extrabold text-[#ff1744] font-mono tracking-tight" id="kpi-drawdown">0.00%</h2>
         </div>
-        <div class="p-2.5 rounded-lg bg-rose-950/50 border border-rose-500/40 text-rose-400">
-          <i class="fa-solid fa-triangle-exclamation text-lg"></i>
-        </div>
+        <div class="p-2.5 rounded-lg bg-rose-950/50 border border-rose-500/40 text-[#ff1744]"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
       </div>
-
     </div>
 
     <!-- EQUITY CURVE -->
     <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex flex-col justify-between relative">
-      <div class="flex justify-between items-center mb-4">
-        <div>
-          <h3 class="font-bold text-base text-slate-100">Curva de Capital (Equity Curve) - Lucro Líquido Acumulado</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Evolução dos resultados em tempo real baseada nos envios do MetaTrader 5</p>
-        </div>
+      <div class="mb-4">
+        <h3 class="font-bold text-base text-slate-100">Curva de Capital (Equity Curve) - Lucro Líquido Acumulado</h3>
+        <p class="text-xs text-slate-400 mt-0.5">Evolução dos resultados em tempo real baseada nos envios do MetaTrader 5</p>
       </div>
-      <div class="h-80 w-full relative">
-        <canvas id="equityCurveChart"></canvas>
-      </div>
+      <div class="h-80 w-full relative"><canvas id="equityCurveChart"></canvas></div>
     </div>
 
     <!-- PAINEL DE FILTROS -->
@@ -223,8 +191,6 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        <!-- TIMEFRAME -->
         <div class="fcard">
           <div class="fcard-head">
             <div class="fcard-icon"><i class="fa-regular fa-clock"></i></div>
@@ -238,7 +204,6 @@
           </div>
         </div>
 
-        <!-- HORÁRIO -->
         <div class="fcard">
           <div class="fcard-head">
             <div class="fcard-icon"><i class="fa-solid fa-hourglass-half"></i></div>
@@ -248,7 +213,6 @@
           <div class="hour-grid" id="hour-container"></div>
         </div>
 
-        <!-- PERÍODO -->
         <div class="fcard">
           <div class="fcard-head">
             <div class="fcard-icon"><i class="fa-regular fa-calendar-days"></i></div>
@@ -263,43 +227,42 @@
             <button onclick="selectPeriod(this)" class="period-btn chip">1 Semana</button>
           </div>
         </div>
-
       </div>
     </div>
 
     <!-- TABELA -->
     <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h3 class="font-bold text-base text-slate-100">Resultados Detalhados dos Backtests</h3>
-          <p class="text-xs text-slate-400">Sincronizado automaticamente da planilha do Google Sheets</p>
-        </div>
+      <div>
+        <h3 class="font-bold text-base text-slate-100">Resultados Detalhados dos Backtests</h3>
+        <p class="text-xs text-slate-400">Sincronizado automaticamente da planilha do Google Sheets</p>
       </div>
-
-      <div class="overflow-x-auto border border-slate-800 rounded-lg">
-        <table class="w-full text-center border-collapse text-xs">
+      <div class="overflow-x-auto">
+        <table class="custom-table text-xs">
           <thead>
-            <tr class="bg-slate-900/80 text-cyan-400 border-b border-slate-800 font-semibold uppercase">
-              <th class="py-3 px-3">Data / Hora</th>
-              <th class="py-3 px-3">Lucro Líquido</th>
-              <th class="py-3 px-3">Drawdown</th>
-              <th class="py-3 px-3">Maior Lucro</th>
-              <th class="py-3 px-3">Maior Perda</th>
-              <th class="py-3 px-3">Ganhos Consec.</th>
-              <th class="py-3 px-3">Perdas Consec.</th>
-              <th class="py-3 px-3">Operações</th>
-              <th class="py-3 px-3">Sharpe</th>
-              <th class="py-3 px-3">% Vitória</th>
-              <th class="py-3 px-3">Fator EA</th>
-              <th class="py-3 px-3">Timeframe</th>
+            <tr class="text-cyan-400 font-semibold uppercase">
+              <th>Data / Hora</th><th>Lucro Líquido</th><th>Drawdown</th><th>Maior Lucro</th>
+              <th>Maior Perda</th><th>Ganhos Consec.</th><th>Perdas Consec.</th><th>Operações</th>
+              <th>Sharpe</th><th>% Vitória</th><th>Fator EA</th><th>Timeframe</th><th></th>
             </tr>
           </thead>
-          <tbody id="table-body" class="divide-y divide-slate-800/60 font-medium"></tbody>
+          <tbody id="table-body" class="font-medium"></tbody>
         </table>
       </div>
     </div>
 
   </main>
+
+  <div id="del-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/70">
+    <div class="bg-cardBg border border-cardBorder rounded-2xl p-6 w-[90%] max-w-sm text-center space-y-5">
+      <div class="w-12 h-12 mx-auto rounded-full bg-[#ff1744] flex items-center justify-center text-white text-xl font-bold">✕</div>
+      <p class="text-base font-semibold text-slate-100">Você deseja apagar este resultado?</p>
+      <p class="text-xs text-slate-400">Ele será removido da planilha e não dá para desfazer.</p>
+      <div class="flex gap-3 justify-center">
+        <button onclick="closeDelete()" class="chip px-6 py-2.5 text-sm">Não</button>
+        <button onclick="confirmDelete()" class="px-6 py-2.5 text-sm font-bold rounded-[10px] text-white bg-[#ff1744] hover:brightness-110 transition">Sim, apagar</button>
+      </div>
+    </div>
+  </div>
 
   <footer class="bg-cardBg border-t border-cardBorder px-6 py-3 text-center text-xs text-slate-500">
     XAUUSD &copy; 2026 - MT5 Automated Strategy Optimizer & Google Sheets Live Pipeline
@@ -307,15 +270,16 @@
 
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSnal0cSHx4_QoyubFzEMQiM2VPt1oIvdJcNsmz9mWJXunG4yZGdup9-DfuBuJQLGe1henVi3evil_k/pub?output=csv';
+    const DELETE_URL = 'https://script.google.com/macros/s/AKfycbzkn7Z4eSCqS4DtH7q_jvFeLT87LpNb5_yZeRN1oDNiuyWIQOzLJorTBu9ln6LYKYTP6g/exec';
+    const DELETE_TOKEN = 'Tony123.';
+    const deletedKeys = new Set();
+    let visibleRows = [];
+    let rowToDelete = null;
     let equityChartInstance = null;
-
-    // Todos os backtests lidos da planilha (sem filtro)
     let allRows = [];
-
-    // Filtros selecionados. null = OFF (nenhum selecionado)
-    let selectedTF = null;      // 'M1', 'M5', 'M15'
-    let selectedHour = null;    // 0..23 (por enquanto só visual)
-    let selectedPeriod = null;  // texto do botão (por enquanto só visual)
+    let selectedTF = null;
+    let selectedHour = null;
+    let selectedPeriod = null;
 
     function parseCSVLine(line) {
       const out = [];
@@ -327,8 +291,7 @@
           if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
           else { inQuotes = !inQuotes; }
         } else if (ch === ',' && !inQuotes) {
-          out.push(cur);
-          cur = '';
+          out.push(cur); cur = '';
         } else {
           cur += ch;
         }
@@ -342,57 +305,41 @@
       let s = val.toString().replace(/\s/g, '').replace(/[^0-9.,-]/g, '');
       if (!/\d/.test(s)) return 0;
       if (s.includes(',') && s.includes('.')) {
-        if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
-          s = s.replace(/\./g, '').replace(',', '.');
-        } else {
-          s = s.replace(/,/g, '');
-        }
+        if (s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+        else s = s.replace(/,/g, '');
       } else if (s.includes(',')) {
         s = s.replace(',', '.');
       }
       const dots = s.split('.');
-      if (dots.length > 2) {
-        s = dots.slice(0, -1).join('') + '.' + dots[dots.length - 1];
-      }
+      if (dots.length > 2) s = dots.slice(0, -1).join('') + '.' + dots[dots.length - 1];
       return parseFloat(s) || 0;
     }
 
     const fmtMoney = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    // ----- BOTÕES DAS HORAS (00:00 até 23:00) -----
     function renderHourButtons() {
       const container = document.getElementById('hour-container');
       if (!container) return;
       container.innerHTML = '';
       for (let i = 0; i < 24; i++) {
-        const hourStr = i < 10 ? `0${i}:00` : `${i}:00`;
         const btn = document.createElement('button');
         btn.className = 'hour-btn chip';
         btn.dataset.hour = i;
-        btn.innerText = hourStr;
+        btn.innerText = (i < 10 ? '0' + i : i) + ':00';
         btn.onclick = function () { selectHour(this); };
         container.appendChild(btn);
       }
     }
 
-    // ----- ATUALIZA O VISUAL DOS 3 FILTROS (botões ativos e OFF) -----
     function updateFilterUI() {
-      document.querySelectorAll('.tf-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tf === selectedTF);
-      });
-      document.querySelectorAll('.hour-btn').forEach(btn => {
-        btn.classList.toggle('active', selectedHour !== null && Number(btn.dataset.hour) === selectedHour);
-      });
-      document.querySelectorAll('.period-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.innerText === selectedPeriod);
-      });
-
+      document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('active', b.dataset.tf === selectedTF));
+      document.querySelectorAll('.hour-btn').forEach(b => b.classList.toggle('active', selectedHour !== null && Number(b.dataset.hour) === selectedHour));
+      document.querySelectorAll('.period-btn').forEach(b => b.classList.toggle('active', b.innerText === selectedPeriod));
       document.getElementById('off-tf').classList.toggle('active', selectedTF === null);
       document.getElementById('off-hour').classList.toggle('active', selectedHour === null);
       document.getElementById('off-period').classList.toggle('active', selectedPeriod === null);
     }
 
-    // ----- BOTÃO OFF: desliga o filtro (nenhum selecionado) -----
     function setOff(which) {
       if (which === 'tf') selectedTF = null;
       if (which === 'hour') selectedHour = null;
@@ -401,30 +348,69 @@
       renderDashboard();
     }
 
-    // ----- TIMEFRAME (filtra de verdade) -----
     function selectTimeframe(el) {
       const tf = el.dataset.tf;
-      // Clicar de novo no que já está ativo = desliga (OFF)
       selectedTF = (selectedTF === tf) ? null : tf;
       updateFilterUI();
       renderDashboard();
     }
 
-    // ----- HORÁRIO (por enquanto só visual) -----
     function selectHour(el) {
       const h = Number(el.dataset.hour);
       selectedHour = (selectedHour === h) ? null : h;
       updateFilterUI();
     }
 
-    // ----- PERÍODO (por enquanto só visual) -----
     function selectPeriod(el) {
       const p = el.innerText;
       selectedPeriod = (selectedPeriod === p) ? null : p;
       updateFilterUI();
     }
 
-    // ----- LEITURA DA PLANILHA -----
+    function rowKey(r) {
+      return [r.dataHora, r.timeframe, r.lucroLiquido.toFixed(2), r.operacoes].join('|');
+    }
+
+    function askDelete(idx) {
+      rowToDelete = visibleRows[idx];
+      if (!rowToDelete) return;
+      const m = document.getElementById('del-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeDelete() {
+      const m = document.getElementById('del-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    async function confirmDelete() {
+      const r = rowToDelete;
+      closeDelete();
+      if (!r) return;
+      if (!DELETE_URL || DELETE_URL.startsWith('COLE')) {
+        alert('Falta configurar o DELETE_URL no código do site.');
+        return;
+      }
+      try {
+        const res = await fetch(DELETE_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            token: DELETE_TOKEN, dataHora: r.dataHora, lucro: r.lucroLiquido,
+            operacoes: r.operacoes, timeframe: r.timeframe
+          })
+        });
+        const out = await res.json();
+        if (!out.ok) { alert('Não foi possível apagar: ' + (out.erro || 'erro desconhecido')); return; }
+        deletedKeys.add(rowKey(r));
+        allRows.splice(allRows.indexOf(r), 1);
+        renderDashboard();
+      } catch (e) {
+        alert('Erro ao apagar. Tente de novo.');
+      }
+    }
+
     async function fetchData() {
       try {
         const response = await fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' });
@@ -441,11 +427,7 @@
         for (let i = startIdx; i < rows.length; i++) {
           const cols = parseCSVLine(rows[i]);
           if (cols.length < 5) continue;
-
-          // Resultados de otimização ainda não são exibidos aqui (só backtests normais)
           if ((cols[12] || '').trim().toUpperCase() === 'OTIMIZACAO') continue;
-
-          const tfRaw = (cols[11] || '').trim().toUpperCase();
 
           parsed.push({
             dataHora:     cols[0] || '-',
@@ -459,27 +441,24 @@
             sharpe:       cleanNum(cols[8]),
             pctVitoria:   cleanNum(cols[9]),
             fatorEA:      cleanNum(cols[10]),
-            timeframe:    tfRaw || '-'
+            timeframe:    (cols[11] || '').trim().toUpperCase() || '-'
           });
         }
 
-        allRows = parsed;
+        const present = new Set(parsed.map(rowKey));
+        deletedKeys.forEach(k => { if (!present.has(k)) deletedKeys.delete(k); });
+        allRows = parsed.filter(r => !deletedKeys.has(rowKey(r)));
         renderDashboard();
-
       } catch (err) {
         console.log('Aguardando sincronização com dados da planilha');
       }
     }
 
-    // ----- DESENHA TABELA, KPIs E GRÁFICO COM O FILTRO APLICADO -----
     function renderDashboard() {
-      const rows = (selectedTF === null)
-        ? allRows
-        : allRows.filter(r => r.timeframe === selectedTF);
+      const rows = (selectedTF === null) ? allRows : allRows.filter(r => r.timeframe === selectedTF);
+      visibleRows = rows;
 
-      let totalLucro = 0;
-      let sumSharpe = 0;
-      let sumDD = 0;
+      let totalLucro = 0, sumSharpe = 0, sumDD = 0;
       const cumulativePoints = [];
       const labelsList = [];
 
@@ -487,35 +466,34 @@
       tableBody.innerHTML = '';
 
       if (rows.length === 0) {
-        tableBody.innerHTML = `
-          <tr><td colspan="12" class="py-6 text-slate-500">Nenhum backtest encontrado para este timeframe.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="13" class="text-slate-400 font-mono">Nenhum backtest encontrado para este timeframe.</td></tr>`;
       }
 
       rows.forEach((r, idx) => {
         totalLucro += r.lucroLiquido;
         sumSharpe += r.sharpe;
         sumDD += r.drawdown;
-
         cumulativePoints.push(totalLucro);
         labelsList.push(`Run #${idx + 1}`);
 
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-800/40 transition text-slate-300';
-        const lucroClass = r.lucroLiquido >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold';
+        tr.className = 'text-slate-200';
+        const lucroClass = r.lucroLiquido >= 0 ? 'val-positive font-num' : 'val-negative font-num';
 
         tr.innerHTML = `
-          <td class="py-3 px-3 text-slate-400">${r.dataHora}</td>
-          <td class="py-3 px-3 ${lucroClass}">$ ${fmtMoney(r.lucroLiquido)}</td>
-          <td class="py-3 px-3 text-rose-400">${r.drawdown.toFixed(2)}%</td>
-          <td class="py-3 px-3 text-emerald-400">$ ${fmtMoney(r.maiorLucro)}</td>
-          <td class="py-3 px-3 text-rose-400">$ ${fmtMoney(r.maiorPerda)}</td>
-          <td class="py-3 px-3 text-emerald-400">$ ${fmtMoney(r.ganhosConsec)}</td>
-          <td class="py-3 px-3 text-rose-400">$ ${fmtMoney(r.perdasConsec)}</td>
-          <td class="py-3 px-3">${r.operacoes}</td>
-          <td class="py-3 px-3 font-semibold text-cyan-400">${r.sharpe.toFixed(2)}</td>
-          <td class="py-3 px-3 text-emerald-400">${r.pctVitoria.toFixed(2)}%</td>
-          <td class="py-3 px-3">${r.fatorEA.toFixed(2)}</td>
-          <td class="py-3 px-3 font-semibold text-amber-400">${r.timeframe}</td>
+          <td class="font-mono text-slate-300 font-semibold">${r.dataHora}</td>
+          <td class="${lucroClass}">$ ${fmtMoney(r.lucroLiquido)}</td>
+          <td class="font-num val-negative">${r.drawdown.toFixed(2)}%</td>
+          <td class="font-num val-positive">$ ${fmtMoney(r.maiorLucro)}</td>
+          <td class="font-num val-negative">$ ${fmtMoney(r.maiorPerda)}</td>
+          <td class="font-num val-positive">$ ${fmtMoney(r.ganhosConsec)}</td>
+          <td class="font-num val-negative">$ ${fmtMoney(r.perdasConsec)}</td>
+          <td class="font-num text-slate-200">${r.operacoes}</td>
+          <td class="font-num val-cyan">${r.sharpe.toFixed(2)}</td>
+          <td class="font-num val-positive">${r.pctVitoria.toFixed(2)}%</td>
+          <td class="font-num text-slate-200">${r.fatorEA.toFixed(2)}</td>
+          <td class="font-mono font-bold text-amber-400">${r.timeframe}</td>
+          <td><button class="del-btn" onclick="askDelete(${idx})" title="Apagar resultado" aria-label="Apagar resultado">✕</button></td>
         `;
         tableBody.appendChild(tr);
       });
@@ -523,7 +501,7 @@
       const total = rows.length;
       const kpiProfit = document.getElementById('kpi-net-profit');
       kpiProfit.innerText = `$ ${fmtMoney(totalLucro)}`;
-      kpiProfit.className = `text-3xl font-bold tracking-tight ${total === 0 ? 'text-white' : (totalLucro >= 0 ? 'text-emerald-400' : 'text-rose-400')}`;
+      kpiProfit.className = `text-3xl font-extrabold font-mono tracking-tight ${total === 0 ? 'text-white' : (totalLucro >= 0 ? 'text-[#00ff87]' : 'text-[#ff1744]')}`;
 
       document.getElementById('kpi-total-tests').innerText = total;
       document.getElementById('kpi-sharpe').innerText = total ? (sumSharpe / total).toFixed(2) : '0.00';
@@ -533,34 +511,27 @@
     }
 
     function initChart() {
-      const ctxEquity = document.getElementById('equityCurveChart').getContext('2d');
-      const gradient = ctxEquity.createLinearGradient(0, 0, 0, 300);
+      const ctx = document.getElementById('equityCurveChart').getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
       gradient.addColorStop(0, 'rgba(0, 242, 254, 0.35)');
       gradient.addColorStop(1, 'rgba(0, 242, 254, 0.0)');
 
-      equityChartInstance = new Chart(ctxEquity, {
+      equityChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
           labels: [],
           datasets: [{
-            label: 'Lucro Líquido Acumulado',
-            data: [],
-            borderColor: '#00f2fe',
-            borderWidth: 2.5,
-            backgroundColor: gradient,
-            fill: true,
-            tension: 0.35,
-            pointBackgroundColor: '#00f2fe',
-            pointHoverRadius: 6
+            label: 'Lucro Líquido Acumulado', data: [],
+            borderColor: '#00f2fe', borderWidth: 2.5, backgroundColor: gradient,
+            fill: true, tension: 0.35, pointBackgroundColor: '#00f2fe', pointHoverRadius: 6
           }]
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { size: 11 } } },
-            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { size: 11 } } }
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 11 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 11 } } }
           }
         }
       });
