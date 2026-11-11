@@ -239,7 +239,7 @@
     const S = {
       bt: { rows: [], visible: [], tf: null, hour: null, period: null, chart: null, selected: null },
       op: { rows: [], visible: [], tf: null, hour: null, period: null, chart: null, selected: null,
-            sort: 'lucroLiquido', limit: 100, allParams: false }
+            sort: 'lucroLiquido', sort2: '', limit: 100, allParams: false }
     };
 
     const CFG = {
@@ -274,6 +274,19 @@
           <div class="flex items-center gap-2">
             <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Ordenar por</span>
             <select class="opt-select" onchange="S.op.sort=this.value; render('op')">
+              <option value="lucroLiquido">Lucro Líquido (maior)</option>
+              <option value="sharpe">Sharpe (maior)</option>
+              <option value="drawdown">Drawdown (menor)</option>
+              <option value="pctVitoria">% Vitória (maior)</option>
+              <option value="fatorEA">Fator EA (maior)</option>
+              <option value="operacoes">Operações (maior)</option>
+              <option value="maiorPerda">Maior Perda (menos negativa)</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">+ Combinar com</span>
+            <select class="opt-select" onchange="S.op.sort2=this.value; render('op')">
+              <option value="">Nenhum</option>
               <option value="lucroLiquido">Lucro Líquido (maior)</option>
               <option value="sharpe">Sharpe (maior)</option>
               <option value="drawdown">Drawdown (menor)</option>
@@ -684,8 +697,18 @@
 
       const totalFiltrado = rows.length;
       if (isOp) {
-        const asc = (st.sort === 'drawdown');
-        rows = rows.slice().sort((a, b) => asc ? a[st.sort] - b[st.sort] : b[st.sort] - a[st.sort]);
+        // drawdown: menor é melhor. Todos os outros: maior é melhor.
+        const cmp = (k) => (a, b) => (k === 'drawdown') ? a[k] - b[k] : b[k] - a[k];
+        if (st.sort2 && st.sort2 !== st.sort) {
+          // Combina os dois critérios: soma a posição de cada passe nos dois rankings (menor soma = melhor)
+          const rank = new Map();
+          [st.sort, st.sort2].forEach(k => {
+            rows.slice().sort(cmp(k)).forEach((r, i) => rank.set(r, (rank.get(r) || 0) + i));
+          });
+          rows = rows.slice().sort((a, b) => (rank.get(a) - rank.get(b)) || cmp(st.sort)(a, b));
+        } else {
+          rows = rows.slice().sort(cmp(st.sort));
+        }
         if (st.limit > 0) rows = rows.slice(0, st.limit);
       }
       st.visible = rows;
