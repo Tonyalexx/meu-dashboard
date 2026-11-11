@@ -101,6 +101,15 @@
     }
     .del-btn:hover { transform: scale(1.15); box-shadow: 0 0 14px rgba(255, 23, 68, 0.7); }
 
+    /* ===== BOTÃO EXCLUIR TUDO (retangular vermelho) ===== */
+    .del-all-btn {
+      background: #ff1744; color: #fff; font-size: 12px; font-weight: 800; letter-spacing: 0.08em;
+      padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap;
+      transition: all 0.18s ease;
+    }
+    .del-all-btn:hover { filter: brightness(1.12); box-shadow: 0 0 14px rgba(255, 23, 68, 0.7); }
+    .del-all-btn:disabled { opacity: 0.6; cursor: wait; }
+
     /* ===== PAINEL DE FILTROS ===== */
     .fcard {
       background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.55));
@@ -205,11 +214,11 @@
   <div id="del-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/70">
     <div class="bg-cardBg border border-cardBorder rounded-2xl p-6 w-[90%] max-w-sm text-center space-y-5">
       <div class="w-12 h-12 mx-auto rounded-full bg-[#ff1744] flex items-center justify-center text-white text-xl font-bold">✕</div>
-      <p class="text-base font-semibold text-slate-100">Você deseja apagar este resultado?</p>
-      <p class="text-xs text-slate-400">Ele será removido da planilha e não dá para desfazer.</p>
+      <p id="del-title" class="text-base font-semibold text-slate-100">Você deseja apagar este resultado?</p>
+      <p id="del-sub" class="text-xs text-slate-400">Ele será removido da planilha e não dá para desfazer.</p>
       <div class="flex gap-3 justify-center">
         <button onclick="closeDelete()" class="chip px-6 py-2.5 text-sm">Não</button>
-        <button onclick="confirmDelete()" class="px-6 py-2.5 text-sm font-bold rounded-[10px] text-white bg-[#ff1744] hover:brightness-110 transition">Sim, apagar</button>
+        <button id="del-confirm" onclick="confirmDelete()" class="px-6 py-2.5 text-sm font-bold rounded-[10px] text-white bg-[#ff1744] hover:brightness-110 transition">Sim, apagar</button>
       </div>
     </div>
   </div>
@@ -377,9 +386,14 @@
       </div>
 
       <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
-        <div>
-          <h3 class="font-bold text-base text-slate-100">${c.tableTitle}</h3>
-          <p class="text-xs text-slate-400">${c.tableSub}</p>
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-base text-slate-100">${c.tableTitle}</h3>
+            <p class="text-xs text-slate-400">${c.tableSub}</p>
+          </div>
+          <button onclick="askDeleteAll('${p}')" class="del-all-btn" title="Apagar todos os resultados desta aba">
+            <i class="fa-solid fa-trash mr-2"></i>EXCLUIR TUDO
+          </button>
         </div>
         ${controls}
         <div class="overflow-x-auto">
@@ -505,13 +519,49 @@
 
     // ---------- Apagar ----------
     let deleteFrom = 'bt';
-    function askDelete(p, idx) {
-      deleteFrom = p;
-      rowToDelete = S[p].visible[idx];
-      if (!rowToDelete) return;
+    let deleteAllMode = false;
+
+    function openModal() {
       const m = document.getElementById('del-modal');
       m.classList.remove('hidden');
       m.classList.add('flex');
+    }
+
+    function setModalTexts(all, p) {
+      const title = document.getElementById('del-title');
+      const sub = document.getElementById('del-sub');
+      const btn = document.getElementById('del-confirm');
+      if (all) {
+        const nome = (p === 'op') ? 'da OTIMIZAÇÃO' : 'dos BACKTESTS';
+        title.innerText = `Você deseja apagar TODOS os resultados ${nome}?`;
+        sub.innerText = 'Tudo será removido da planilha e não dá para desfazer.';
+        btn.innerText = 'Sim, apagar tudo';
+      } else {
+        title.innerText = 'Você deseja apagar este resultado?';
+        sub.innerText = 'Ele será removido da planilha e não dá para desfazer.';
+        btn.innerText = 'Sim, apagar';
+      }
+    }
+
+    function askDelete(p, idx) {
+      deleteFrom = p;
+      deleteAllMode = false;
+      rowToDelete = S[p].visible[idx];
+      if (!rowToDelete) return;
+      setModalTexts(false, p);
+      openModal();
+    }
+
+    function askDeleteAll(p) {
+      if (S[p].rows.length === 0) {
+        alert('Não há resultados para apagar nesta aba.');
+        return;
+      }
+      deleteFrom = p;
+      deleteAllMode = true;
+      rowToDelete = null;
+      setModalTexts(true, p);
+      openModal();
     }
 
     function closeDelete() {
@@ -522,25 +572,37 @@
 
     async function confirmDelete() {
       const r = rowToDelete;
+      const k = deleteFrom;
+      const all = deleteAllMode;
       closeDelete();
-      if (!r) return;
+      if (!all && !r) return;
       if (!DELETE_URL || DELETE_URL.startsWith('COLE')) {
         alert('Falta configurar o DELETE_URL no código do site.');
         return;
       }
       try {
-        const res = await fetch(DELETE_URL, {
-          method: 'POST',
-          body: JSON.stringify(deleteFrom === 'op'
-            ? { token: DELETE_TOKEN, passe: r.passe }
-            : { token: DELETE_TOKEN, dataHora: r.dataHora, lucro: r.lucroLiquido,
-                operacoes: r.operacoes, timeframe: r.timeframe })
-        });
+        let payload;
+        if (all) {
+          payload = { token: DELETE_TOKEN, apagarTudo: true, tipo: k };
+        } else if (k === 'op') {
+          payload = { token: DELETE_TOKEN, passe: r.passe };
+        } else {
+          payload = { token: DELETE_TOKEN, dataHora: r.dataHora, lucro: r.lucroLiquido,
+                      operacoes: r.operacoes, timeframe: r.timeframe };
+        }
+
+        const res = await fetch(DELETE_URL, { method: 'POST', body: JSON.stringify(payload) });
         const out = await res.json();
         if (!out.ok) { alert('Não foi possível apagar: ' + (out.erro || 'erro desconhecido')); return; }
-        deletedKeys.add(rowKey(r));
-        const k = deleteFrom;
-        S[k].rows.splice(S[k].rows.indexOf(r), 1);
+
+        if (all) {
+          if (k === 'bt') S.bt.rows.forEach(x => deletedKeys.add(rowKey(x)));
+          S[k].rows = [];
+          S[k].selected = null;
+        } else {
+          deletedKeys.add(rowKey(r));
+          S[k].rows.splice(S[k].rows.indexOf(r), 1);
+        }
         document.getElementById('count-' + k).innerText = S[k].rows.length;
         render(k);
       } catch (e) {
