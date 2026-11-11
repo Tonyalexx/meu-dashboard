@@ -59,32 +59,19 @@
       background-color: #1b2942; border-color: #00f2fe;
       box-shadow: 0 4px 22px rgba(0, 242, 254, 0.15); transition: all 0.2s ease;
     }
-    .val-positive { color: #00ff87; font-weight: 700; }
-    .val-negative { color: #ff1744; font-weight: 700; }
-    .val-cyan { color: #00f2fe; font-weight: 700; }
-
-    /* ===== TABELA COMPACTA (OTIMIZAÇÃO) ===== */
-    .opt-table { border-collapse: collapse; width: 100%; }
-    .opt-table th {
-      position: sticky; top: 0; background: #0b1220; color: #00f2fe;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 10px 12px; text-align: center; white-space: nowrap; border-bottom: 1px solid #25354e;
-    }
-    .opt-table td {
-      padding: 10px 12px; text-align: center; white-space: nowrap;
-      font-family: 'Space Grotesk', sans-serif; font-size: 14px;
-      font-variant-numeric: tabular-nums; border-bottom: 1px solid #1a2538;
-    }
-    .opt-table tbody tr:hover td { background: #1b2942; }
-    .opt-table td.params {
-      white-space: normal; text-align: left; min-width: 320px; max-width: 560px;
-      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #94a3b8; line-height: 1.6;
+    .custom-table td.params-cell {
+      white-space: normal; text-align: left; min-width: 340px; max-width: 520px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #94a3b8;
+      line-height: 1.7; padding: 14px 16px; letter-spacing: 0;
     }
     .ptag {
       display: inline-block; background: #0b1220; border: 1px solid #25354e; border-radius: 6px;
       padding: 1px 6px; margin: 2px 3px 2px 0; color: #cbd5e1;
     }
     .ptag b { color: #fbbf24; font-weight: 600; }
+    .val-positive { color: #00ff87; font-weight: 700; }
+    .val-negative { color: #ff1744; font-weight: 700; }
+    .val-cyan { color: #00f2fe; font-weight: 700; }
 
     /* ===== BOTÃO APAGAR (bolinha vermelha com X) ===== */
     .del-btn {
@@ -186,205 +173,12 @@
     <!-- ABAS -->
     <div class="flex gap-3">
       <button id="tab-bt" onclick="switchTab('bt')" class="tab-btn active"><i class="fa-solid fa-chart-line mr-2"></i>BACKTESTS<span id="count-bt" class="tab-count">0</span></button>
-      <button id="tab-opt" onclick="switchTab('opt')" class="tab-btn"><i class="fa-solid fa-dna mr-2"></i>OTIMIZAÇÃO<span id="count-opt" class="tab-count">0</span></button>
+      <button id="tab-op" onclick="switchTab('op')" class="tab-btn"><i class="fa-solid fa-dna mr-2"></i>OTIMIZAÇÃO<span id="count-op" class="tab-count">0</span></button>
     </div>
 
-    <!-- ================= VISÃO: BACKTESTS ================= -->
-    <div id="view-bt" class="space-y-6">
-
-      <!-- KPIs -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-cardBg border border-cyan-500/30 rounded-xl p-4 flex justify-between items-start glow-cyan">
-          <div class="space-y-1">
-            <p class="text-xs uppercase font-semibold text-slate-400">Lucro Líquido Acumulado</p>
-            <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-net-profit">$ 0.00</h2>
-          </div>
-          <div class="p-2.5 rounded-lg bg-cyan-950/50 border border-cyan-500/40 text-cyan-400"><i class="fa-solid fa-arrow-trend-up text-lg"></i></div>
-        </div>
-        <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex justify-between items-start">
-          <div class="space-y-1">
-            <p class="text-xs uppercase font-semibold text-slate-400">Total de Backtests</p>
-            <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-total-tests">0</h2>
-          </div>
-          <div class="p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300"><i class="fa-solid fa-database text-lg"></i></div>
-        </div>
-        <div class="bg-cardBg border border-emerald-500/30 rounded-xl p-4 flex justify-between items-start">
-          <div class="space-y-1">
-            <p class="text-xs uppercase font-semibold text-slate-400">Sharpe Médio</p>
-            <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-sharpe">0.00</h2>
-          </div>
-          <div class="p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-[#00ff87]"><i class="fa-solid fa-shield-halved text-lg"></i></div>
-        </div>
-        <div class="bg-cardBg border border-rose-500/30 rounded-xl p-4 flex justify-between items-start">
-          <div class="space-y-1">
-            <p class="text-xs uppercase font-semibold text-slate-400">Rebaixamento Médio</p>
-            <h2 class="text-3xl font-extrabold text-[#ff1744] font-mono tracking-tight" id="kpi-drawdown">0.00%</h2>
-          </div>
-          <div class="p-2.5 rounded-lg bg-rose-950/50 border border-rose-500/40 text-[#ff1744]"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
-        </div>
-      </div>
-
-      <!-- EQUITY CURVE -->
-      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex flex-col justify-between relative">
-        <div class="mb-4">
-          <h3 class="font-bold text-base text-slate-100">Curva de Capital (Equity Curve) - Lucro Líquido Acumulado</h3>
-          <p class="text-xs text-slate-400 mt-0.5">Evolução dos resultados em tempo real baseada nos envios do MetaTrader 5</p>
-        </div>
-        <div class="h-80 w-full relative"><canvas id="equityCurveChart"></canvas></div>
-      </div>
-
-      <!-- PAINEL DE FILTROS -->
-      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-          <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-sliders text-rose-500"></i>
-            <h3 class="font-bold text-base text-slate-100">Painel de Filtros</h3>
-          </div>
-          <span class="text-xs text-slate-400">Selecione para filtrar estratégias</span>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div class="fcard">
-            <div class="fcard-head">
-              <div class="fcard-icon"><i class="fa-regular fa-clock"></i></div>
-              <span class="fcard-title">Timeframe</span>
-              <button id="off-tf" onclick="setOff('tf')" class="off-btn active">OFF</button>
-            </div>
-            <div class="tf-grid" id="tf-container">
-              <button onclick="selectTimeframe(this)" data-tf="M1" class="tf-btn chip">M1</button>
-              <button onclick="selectTimeframe(this)" data-tf="M5" class="tf-btn chip">M5</button>
-              <button onclick="selectTimeframe(this)" data-tf="M15" class="tf-btn chip">M15</button>
-            </div>
-          </div>
-
-          <div class="fcard">
-            <div class="fcard-head">
-              <div class="fcard-icon"><i class="fa-solid fa-hourglass-half"></i></div>
-              <span class="fcard-title">Horário (Hora de Início)</span>
-              <button id="off-hour" onclick="setOff('hour')" class="off-btn active">OFF</button>
-            </div>
-            <div class="hour-grid" id="hour-container"></div>
-          </div>
-
-          <div class="fcard">
-            <div class="fcard-head">
-              <div class="fcard-icon"><i class="fa-regular fa-calendar-days"></i></div>
-              <span class="fcard-title">Período</span>
-              <button id="off-period" onclick="setOff('period')" class="off-btn active">OFF</button>
-            </div>
-            <div class="period-wrap" id="period-container">
-              <button onclick="selectPeriod(this)" class="period-btn chip">1 Ano</button>
-              <button onclick="selectPeriod(this)" class="period-btn chip">6 Meses</button>
-              <button onclick="selectPeriod(this)" class="period-btn chip">3 Meses</button>
-              <button onclick="selectPeriod(this)" class="period-btn chip">1 Mês</button>
-              <button onclick="selectPeriod(this)" class="period-btn chip">1 Semana</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TABELA -->
-      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
-        <div>
-          <h3 class="font-bold text-base text-slate-100">Resultados Detalhados dos Backtests</h3>
-          <p class="text-xs text-slate-400">Sincronizado automaticamente da planilha do Google Sheets</p>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="custom-table text-xs">
-            <thead>
-              <tr class="text-cyan-400 font-semibold uppercase">
-                <th>Data / Hora</th><th>Lucro Líquido</th><th>Drawdown</th><th>Maior Lucro</th>
-                <th>Maior Perda</th><th>Ganhos Consec.</th><th>Perdas Consec.</th><th>Operações</th>
-                <th>Sharpe</th><th>% Vitória</th><th>Fator EA</th><th>Timeframe</th><th></th>
-              </tr>
-            </thead>
-            <tbody id="table-body" class="font-medium"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= VISÃO: OTIMIZAÇÃO ================= -->
-    <div id="view-opt" class="space-y-6 hidden">
-
-      <!-- RESUMO -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-cardBg border border-cyan-500/30 rounded-xl p-4 glow-cyan">
-          <p class="text-xs uppercase font-semibold text-slate-400">Passes Recebidos</p>
-          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="opt-kpi-total">0</h2>
-        </div>
-        <div class="bg-cardBg border border-emerald-500/30 rounded-xl p-4">
-          <p class="text-xs uppercase font-semibold text-slate-400">Melhor Lucro</p>
-          <h2 class="text-3xl font-extrabold text-[#00ff87] font-mono tracking-tight" id="opt-kpi-best">$ 0.00</h2>
-        </div>
-        <div class="bg-cardBg border border-cardBorder rounded-xl p-4">
-          <p class="text-xs uppercase font-semibold text-slate-400">Passes Lucrativos</p>
-          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="opt-kpi-pos">0</h2>
-        </div>
-        <div class="bg-cardBg border border-rose-500/30 rounded-xl p-4">
-          <p class="text-xs uppercase font-semibold text-slate-400">Melhor Sharpe</p>
-          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="opt-kpi-sharpe">0.00</h2>
-        </div>
-      </div>
-
-      <!-- CONTROLES -->
-      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex flex-wrap items-center gap-4">
-        <div class="flex items-center gap-2">
-          <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Ordenar por</span>
-          <select id="opt-sort" class="opt-select" onchange="optSort=this.value; renderOpt()">
-            <option value="lucroLiquido">Lucro Líquido (maior)</option>
-            <option value="sharpe">Sharpe (maior)</option>
-            <option value="drawdown">Drawdown (menor)</option>
-            <option value="pctVitoria">% Vitória (maior)</option>
-            <option value="payoff">Payoff (maior)</option>
-            <option value="operacoes">Operações (maior)</option>
-            <option value="maiorPerda">Maior Perda (menos negativa)</option>
-          </select>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Mostrar</span>
-          <select id="opt-limit" class="opt-select" onchange="optLimit=Number(this.value); renderOpt()">
-            <option value="50">Top 50</option>
-            <option value="100" selected>Top 100</option>
-            <option value="500">Top 500</option>
-            <option value="0">Todos</option>
-          </select>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Timeframe</span>
-          <select id="opt-tf" class="opt-select" onchange="optTF=this.value||null; renderOpt()">
-            <option value="">Todos</option>
-            <option value="M1">M1</option>
-            <option value="M5">M5</option>
-            <option value="M15">M15</option>
-          </select>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Parâmetros</span>
-          <button id="opt-params-toggle" onclick="toggleParams()" class="chip px-4 py-2 text-xs">Só os que variam</button>
-        </div>
-        <span id="opt-info" class="ml-auto text-xs text-slate-400"></span>
-      </div>
-
-      <!-- TABELA -->
-      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-3">
-        <div>
-          <h3 class="font-bold text-base text-slate-100">Resultados da Otimização</h3>
-          <p class="text-xs text-slate-400">Cada linha é um passe da otimização genética do MT5, com os parâmetros usados</p>
-        </div>
-        <div class="overflow-auto max-h-[70vh]">
-          <table class="opt-table">
-            <thead>
-              <tr>
-                <th>#</th><th>Lucro Líquido</th><th>Drawdown</th><th>Sharpe</th><th>% Vitória</th><th>Payoff</th>
-                <th>Operações</th><th>Maior Lucro</th><th>Maior Perda</th><th>TF</th><th>Parâmetros</th>
-              </tr>
-            </thead>
-            <tbody id="opt-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    <!-- As duas visões são montadas pelo JavaScript com o mesmo layout -->
+    <div id="view-bt" class="space-y-6"></div>
+    <div id="view-op" class="space-y-6 hidden"></div>
 
   </main>
 
@@ -409,22 +203,175 @@
     const DELETE_URL = 'https://script.google.com/macros/s/AKfycbzkn7Z4eSCqS4DtH7q_jvFeLT87LpNb5_yZeRN1oDNiuyWIQOzLJorTBu9ln6LYKYTP6g/exec';
     const DELETE_TOKEN = 'Tony123.';
     const deletedKeys = new Set();
-    let visibleRows = [];
     let rowToDelete = null;
-    let equityChartInstance = null;
-    let allRows = [];
-    let selectedTF = null;
-    let selectedHour = null;
-    let selectedPeriod = null;
-
-    // ---- Otimização ----
-    let optRows = [];
-    let optSort = 'lucroLiquido';
-    let optLimit = 100;
-    let optTF = null;
-    let showAllParams = false;
     let currentTab = 'bt';
 
+    // Estado de cada visão: bt = backtests (individual), op = otimização (genética)
+    const S = {
+      bt: { rows: [], visible: [], tf: null, hour: null, period: null, chart: null },
+      op: { rows: [], visible: [], tf: null, hour: null, period: null, chart: null,
+            sort: 'lucroLiquido', limit: 100, allParams: false }
+    };
+
+    const CFG = {
+      bt: {
+        kpi1: 'Lucro Líquido Acumulado', kpi2: 'Total de Backtests',
+        chartTitle: 'Curva de Capital (Equity Curve) - Lucro Líquido Acumulado',
+        chartSub: 'Evolução dos resultados em tempo real baseada nos envios do MetaTrader 5',
+        chartLabel: 'Lucro Líquido Acumulado',
+        tableTitle: 'Resultados Detalhados dos Backtests',
+        tableSub: 'Sincronizado automaticamente da planilha do Google Sheets'
+      },
+      op: {
+        kpi1: 'Melhor Lucro Líquido', kpi2: 'Total de Passes da Genética',
+        chartTitle: 'Curva de Capital - Lucro Líquido de cada Passe da Otimização',
+        chartSub: 'Cada ponto é um passe da otimização genética, na mesma ordem da tabela abaixo',
+        chartLabel: 'Lucro Líquido do Passe',
+        tableTitle: 'Resultados Detalhados da Otimização (Genética)',
+        tableSub: 'Cada linha é um passe do algoritmo genético do MT5, com os parâmetros usados'
+      }
+    };
+
+    // ---------- Montagem do layout (igual para as duas visões) ----------
+    function viewHTML(p) {
+      const c = CFG[p];
+      const isOp = (p === 'op');
+      const head = ['Data / Hora', 'Lucro Líquido', 'Drawdown', 'Maior Lucro', 'Maior Perda',
+        'Ganhos Consec.', 'Perdas Consec.', 'Operações', 'Sharpe', '% Vitória', 'Fator EA', 'Timeframe']
+        .map(h => `<th>${h}</th>`).join('') + (isOp ? '<th>Parâmetros</th>' : '<th></th>');
+
+      const controls = isOp ? `
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Ordenar por</span>
+            <select class="opt-select" onchange="S.op.sort=this.value; render('op')">
+              <option value="lucroLiquido">Lucro Líquido (maior)</option>
+              <option value="sharpe">Sharpe (maior)</option>
+              <option value="drawdown">Drawdown (menor)</option>
+              <option value="pctVitoria">% Vitória (maior)</option>
+              <option value="fatorEA">Fator EA (maior)</option>
+              <option value="operacoes">Operações (maior)</option>
+              <option value="maiorPerda">Maior Perda (menos negativa)</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Mostrar</span>
+            <select class="opt-select" onchange="S.op.limit=Number(this.value); render('op')">
+              <option value="50">Top 50</option>
+              <option value="100" selected>Top 100</option>
+              <option value="500">Top 500</option>
+              <option value="0">Todos</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Parâmetros</span>
+            <button id="op-params-toggle" onclick="toggleParams()" class="chip px-4 py-2 text-xs">Só os que variam</button>
+          </div>
+          <span id="op-info" class="ml-auto text-xs text-slate-400"></span>
+        </div>` : '';
+
+      return `
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-cardBg border border-cyan-500/30 rounded-xl p-4 flex justify-between items-start glow-cyan">
+          <div class="space-y-1">
+            <p class="text-xs uppercase font-semibold text-slate-400">${c.kpi1}</p>
+            <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="${p}-kpi-profit">$ 0.00</h2>
+          </div>
+          <div class="p-2.5 rounded-lg bg-cyan-950/50 border border-cyan-500/40 text-cyan-400"><i class="fa-solid fa-arrow-trend-up text-lg"></i></div>
+        </div>
+        <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex justify-between items-start">
+          <div class="space-y-1">
+            <p class="text-xs uppercase font-semibold text-slate-400">${c.kpi2}</p>
+            <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="${p}-kpi-total">0</h2>
+          </div>
+          <div class="p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300"><i class="fa-solid fa-database text-lg"></i></div>
+        </div>
+        <div class="bg-cardBg border border-emerald-500/30 rounded-xl p-4 flex justify-between items-start">
+          <div class="space-y-1">
+            <p class="text-xs uppercase font-semibold text-slate-400">Sharpe Médio</p>
+            <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="${p}-kpi-sharpe">0.00</h2>
+          </div>
+          <div class="p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-[#00ff87]"><i class="fa-solid fa-shield-halved text-lg"></i></div>
+        </div>
+        <div class="bg-cardBg border border-rose-500/30 rounded-xl p-4 flex justify-between items-start">
+          <div class="space-y-1">
+            <p class="text-xs uppercase font-semibold text-slate-400">Rebaixamento Médio</p>
+            <h2 class="text-3xl font-extrabold text-[#ff1744] font-mono tracking-tight" id="${p}-kpi-dd">0.00%</h2>
+          </div>
+          <div class="p-2.5 rounded-lg bg-rose-950/50 border border-rose-500/40 text-[#ff1744]"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+        </div>
+      </div>
+
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex flex-col justify-between relative">
+        <div class="mb-4">
+          <h3 class="font-bold text-base text-slate-100">${c.chartTitle}</h3>
+          <p class="text-xs text-slate-400 mt-0.5">${c.chartSub}</p>
+        </div>
+        <div class="h-80 w-full relative"><canvas id="${p}-chart"></canvas></div>
+      </div>
+
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-sliders text-rose-500"></i>
+            <h3 class="font-bold text-base text-slate-100">Painel de Filtros</h3>
+          </div>
+          <span class="text-xs text-slate-400">Selecione para filtrar estratégias</span>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="fcard">
+            <div class="fcard-head">
+              <div class="fcard-icon"><i class="fa-regular fa-clock"></i></div>
+              <span class="fcard-title">Timeframe</span>
+              <button id="${p}-off-tf" onclick="setOff('${p}','tf')" class="off-btn active">OFF</button>
+            </div>
+            <div class="tf-grid" id="${p}-tf-container">
+              <button onclick="selTF('${p}','M1')" data-v="M1" class="chip">M1</button>
+              <button onclick="selTF('${p}','M5')" data-v="M5" class="chip">M5</button>
+              <button onclick="selTF('${p}','M15')" data-v="M15" class="chip">M15</button>
+            </div>
+          </div>
+          <div class="fcard">
+            <div class="fcard-head">
+              <div class="fcard-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+              <span class="fcard-title">Horário (Hora de Início)</span>
+              <button id="${p}-off-hour" onclick="setOff('${p}','hour')" class="off-btn active">OFF</button>
+            </div>
+            <div class="hour-grid" id="${p}-hour-container">
+              ${Array.from({ length: 24 }, (_, i) =>
+                `<button onclick="selHour('${p}',${i})" data-v="${i}" class="chip">${String(i).padStart(2, '0')}:00</button>`).join('')}
+            </div>
+          </div>
+          <div class="fcard">
+            <div class="fcard-head">
+              <div class="fcard-icon"><i class="fa-regular fa-calendar-days"></i></div>
+              <span class="fcard-title">Período</span>
+              <button id="${p}-off-period" onclick="setOff('${p}','period')" class="off-btn active">OFF</button>
+            </div>
+            <div class="period-wrap" id="${p}-period-container">
+              ${['1 Ano', '6 Meses', '3 Meses', '1 Mês', '1 Semana'].map(t =>
+                `<button onclick="selPeriod('${p}','${t}')" data-v="${t}" class="chip">${t}</button>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
+        <div>
+          <h3 class="font-bold text-base text-slate-100">${c.tableTitle}</h3>
+          <p class="text-xs text-slate-400">${c.tableSub}</p>
+        </div>
+        ${controls}
+        <div class="overflow-x-auto">
+          <table class="custom-table text-xs">
+            <thead><tr class="text-cyan-400 font-semibold uppercase">${head}</tr></thead>
+            <tbody id="${p}-body" class="font-medium"></tbody>
+          </table>
+        </div>
+      </div>`;
+    }
+
+    // ---------- Utilidades ----------
     function parseCSVLine(line) {
       const out = [];
       let cur = '';
@@ -462,75 +409,71 @@
     const fmtMoney = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-    // ---------- ABAS ----------
-    function switchTab(t) {
-      currentTab = t;
-      document.getElementById('view-bt').classList.toggle('hidden', t !== 'bt');
-      document.getElementById('view-opt').classList.toggle('hidden', t !== 'opt');
-      document.getElementById('tab-bt').classList.toggle('active', t === 'bt');
-      document.getElementById('tab-opt').classList.toggle('active', t === 'opt');
-      if (t === 'opt') renderOpt();
-      if (t === 'bt' && equityChartInstance) equityChartInstance.resize();
+    // "Nome=valor||inicio||passo||fim||flag"  ou  "Nome=valor"  ->  { Nome: valor }
+    function parseParams(str) {
+      const map = {};
+      if (!str) return map;
+      str.split(';').forEach(part => {
+        const p = part.trim().split('||')[0].trim();
+        if (!p) return;
+        const i = p.indexOf('=');
+        if (i <= 0) return;
+        map[p.slice(0, i).trim()] = p.slice(i + 1).trim();
+      });
+      return map;
     }
 
-    // ---------- FILTROS (BACKTESTS) ----------
-    function renderHourButtons() {
-      const container = document.getElementById('hour-container');
-      if (!container) return;
-      container.innerHTML = '';
-      for (let i = 0; i < 24; i++) {
-        const btn = document.createElement('button');
-        btn.className = 'hour-btn chip';
-        btn.dataset.hour = i;
-        btn.innerText = (i < 10 ? '0' + i : i) + ':00';
-        btn.onclick = function () { selectHour(this); };
-        container.appendChild(btn);
-      }
-    }
-
-    function updateFilterUI() {
-      document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('active', b.dataset.tf === selectedTF));
-      document.querySelectorAll('.hour-btn').forEach(b => b.classList.toggle('active', selectedHour !== null && Number(b.dataset.hour) === selectedHour));
-      document.querySelectorAll('.period-btn').forEach(b => b.classList.toggle('active', b.innerText === selectedPeriod));
-      document.getElementById('off-tf').classList.toggle('active', selectedTF === null);
-      document.getElementById('off-hour').classList.toggle('active', selectedHour === null);
-      document.getElementById('off-period').classList.toggle('active', selectedPeriod === null);
-    }
-
-    function setOff(which) {
-      if (which === 'tf') selectedTF = null;
-      if (which === 'hour') selectedHour = null;
-      if (which === 'period') selectedPeriod = null;
-      updateFilterUI();
-      renderDashboard();
-    }
-
-    function selectTimeframe(el) {
-      const tf = el.dataset.tf;
-      selectedTF = (selectedTF === tf) ? null : tf;
-      updateFilterUI();
-      renderDashboard();
-    }
-
-    function selectHour(el) {
-      const h = Number(el.dataset.hour);
-      selectedHour = (selectedHour === h) ? null : h;
-      updateFilterUI();
-    }
-
-    function selectPeriod(el) {
-      const p = el.innerText;
-      selectedPeriod = (selectedPeriod === p) ? null : p;
-      updateFilterUI();
+    // Horas em que o passe opera (Horário 1/2/3 ligados)
+    function horasDoPasse(params) {
+      const set = new Set();
+      [1, 2, 3].forEach(n => {
+        const h = parseInt(params['InpHora' + n], 10);
+        if (params['InpHora' + n + '_On'] === '1' && h >= 0 && h <= 23) set.add(h);
+      });
+      return set;
     }
 
     function rowKey(r) {
       return [r.dataHora, r.timeframe, r.lucroLiquido.toFixed(2), r.operacoes].join('|');
     }
 
-    // ---------- APAGAR ----------
+    // ---------- Abas ----------
+    function switchTab(t) {
+      currentTab = t;
+      document.getElementById('view-bt').classList.toggle('hidden', t !== 'bt');
+      document.getElementById('view-op').classList.toggle('hidden', t !== 'op');
+      document.getElementById('tab-bt').classList.toggle('active', t === 'bt');
+      document.getElementById('tab-op').classList.toggle('active', t === 'op');
+      if (S[t].chart) S[t].chart.resize();
+    }
+
+    // ---------- Filtros ----------
+    function updateFilterUI(p) {
+      const st = S[p];
+      document.querySelectorAll(`#${p}-tf-container .chip`).forEach(b => b.classList.toggle('active', b.dataset.v === st.tf));
+      document.querySelectorAll(`#${p}-hour-container .chip`).forEach(b => b.classList.toggle('active', st.hour !== null && Number(b.dataset.v) === st.hour));
+      document.querySelectorAll(`#${p}-period-container .chip`).forEach(b => b.classList.toggle('active', b.dataset.v === st.period));
+      document.getElementById(`${p}-off-tf`).classList.toggle('active', st.tf === null);
+      document.getElementById(`${p}-off-hour`).classList.toggle('active', st.hour === null);
+      document.getElementById(`${p}-off-period`).classList.toggle('active', st.period === null);
+    }
+
+    function setOff(p, which) { S[p][which] = null; updateFilterUI(p); render(p); }
+    function selTF(p, v) { S[p].tf = (S[p].tf === v) ? null : v; updateFilterUI(p); render(p); }
+    function selHour(p, v) { S[p].hour = (S[p].hour === v) ? null : v; updateFilterUI(p); render(p); }
+    function selPeriod(p, v) { S[p].period = (S[p].period === v) ? null : v; updateFilterUI(p); render(p); }
+
+    function toggleParams() {
+      S.op.allParams = !S.op.allParams;
+      const b = document.getElementById('op-params-toggle');
+      b.innerText = S.op.allParams ? 'Todos' : 'Só os que variam';
+      b.classList.toggle('active', S.op.allParams);
+      render('op');
+    }
+
+    // ---------- Apagar (só backtests individuais) ----------
     function askDelete(idx) {
-      rowToDelete = visibleRows[idx];
+      rowToDelete = S.bt.visible[idx];
       if (!rowToDelete) return;
       const m = document.getElementById('del-modal');
       m.classList.remove('hidden');
@@ -562,37 +505,15 @@
         const out = await res.json();
         if (!out.ok) { alert('Não foi possível apagar: ' + (out.erro || 'erro desconhecido')); return; }
         deletedKeys.add(rowKey(r));
-        allRows.splice(allRows.indexOf(r), 1);
-        renderDashboard();
+        S.bt.rows.splice(S.bt.rows.indexOf(r), 1);
+        document.getElementById('count-bt').innerText = S.bt.rows.length;
+        render('bt');
       } catch (e) {
         alert('Erro ao apagar. Tente de novo.');
       }
     }
 
-    // ---------- PARÂMETROS DA OTIMIZAÇÃO ----------
-    // O MT5 manda cada parâmetro como "Nome=valor||inicio||passo||fim||flag".
-    // Aqui ficamos só com "Nome" e "valor".
-    function parseParams(str) {
-      const map = {};
-      if (!str) return map;
-      str.split(';').forEach(part => {
-        const p = part.trim().split('||')[0].trim();
-        if (!p) return;
-        const i = p.indexOf('=');
-        if (i <= 0) return;
-        map[p.slice(0, i).trim()] = p.slice(i + 1).trim();
-      });
-      return map;
-    }
-
-    function toggleParams() {
-      showAllParams = !showAllParams;
-      document.getElementById('opt-params-toggle').innerText = showAllParams ? 'Todos' : 'Só os que variam';
-      document.getElementById('opt-params-toggle').classList.toggle('active', showAllParams);
-      renderOpt();
-    }
-
-    // ---------- BUSCAR DADOS ----------
+    // ---------- Buscar dados da planilha ----------
     async function fetchData() {
       try {
         const response = await fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' });
@@ -627,9 +548,8 @@
           };
 
           if ((cols[12] || '').trim().toUpperCase() === 'OTIMIZACAO') {
-            base.payoff = base.fatorEA;
-            base.passe = cols[13] || '';
             base.params = parseParams(cols[14] || '');
+            base.horas = horasDoPasse(base.params);
             parsedOpt.push(base);
           } else {
             parsed.push(base);
@@ -638,14 +558,16 @@
 
         const present = new Set(parsed.map(rowKey));
         deletedKeys.forEach(k => { if (!present.has(k)) deletedKeys.delete(k); });
-        allRows = parsed.filter(r => !deletedKeys.has(rowKey(r)));
-        optRows = parsedOpt;
+        S.bt.rows = parsed.filter(r => !deletedKeys.has(rowKey(r)));
+        S.op.rows = parsedOpt;
 
-        document.getElementById('count-bt').innerText = allRows.length;
-        document.getElementById('count-opt').innerText = optRows.length;
+        document.getElementById('count-bt').innerText = S.bt.rows.length;
+        document.getElementById('count-op').innerText = S.op.rows.length;
 
-        renderDashboard();
-        if (currentTab === 'opt') renderOpt();
+        render('bt');
+        render('op');
+        const st = document.getElementById('sync-text');
+        if (st) st.innerText = 'Google Sheets Connected';
       } catch (err) {
         console.log('Aguardando sincronização com dados da planilha');
         const st = document.getElementById('sync-text');
@@ -653,34 +575,73 @@
       }
     }
 
-    // ---------- RENDER: BACKTESTS ----------
-    function renderDashboard() {
-      const rows = (selectedTF === null) ? allRows : allRows.filter(r => r.timeframe === selectedTF);
-      visibleRows = rows;
+    // ---------- Render (igual para as duas visões) ----------
+    function render(p) {
+      const st = S[p];
+      const isOp = (p === 'op');
 
-      let totalLucro = 0, sumSharpe = 0, sumDD = 0;
-      const cumulativePoints = [];
-      const labelsList = [];
+      let rows = st.rows;
+      if (st.tf !== null) rows = rows.filter(r => r.timeframe === st.tf);
+      if (isOp && st.hour !== null) rows = rows.filter(r => r.horas.has(st.hour));
 
-      const tableBody = document.getElementById('table-body');
-      tableBody.innerHTML = '';
+      const totalFiltrado = rows.length;
+      if (isOp) {
+        const asc = (st.sort === 'drawdown');
+        rows = rows.slice().sort((a, b) => asc ? a[st.sort] - b[st.sort] : b[st.sort] - a[st.sort]);
+        if (st.limit > 0) rows = rows.slice(0, st.limit);
+      }
+      st.visible = rows;
+
+      // Parâmetros a exibir (só otimização)
+      let names = [];
+      if (isOp) {
+        const base = S.op.rows.filter(r => (st.tf === null || r.timeframe === st.tf));
+        if (st.allParams) {
+          const set = new Set();
+          base.forEach(r => Object.keys(r.params).forEach(k => set.add(k)));
+          names = Array.from(set);
+        } else {
+          const first = {};
+          const varying = new Set();
+          base.forEach(r => Object.keys(r.params).forEach(k => {
+            if (!(k in first)) first[k] = r.params[k];
+            else if (first[k] !== r.params[k]) varying.add(k);
+          }));
+          names = Array.from(varying);
+        }
+        const info = document.getElementById('op-info');
+        if (info) info.innerText = `Mostrando ${rows.length} de ${totalFiltrado} passes`;
+      }
+
+      let totalLucro = 0, sumSharpe = 0, sumDD = 0, melhor = null;
+      const points = [];
+      const labels = [];
+      const body = document.getElementById(`${p}-body`);
+      const colSpan = 13;
+      const parts = [];
 
       if (rows.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="13" class="text-slate-400 font-mono">Nenhum backtest encontrado para este timeframe.</td></tr>`;
+        const msg = isOp ? 'Nenhum passe de otimização encontrado para estes filtros.'
+                         : 'Nenhum backtest encontrado para este timeframe.';
+        parts.push(`<tr><td colspan="${colSpan}" class="text-slate-400 font-mono">${msg}</td></tr>`);
       }
 
       rows.forEach((r, idx) => {
         totalLucro += r.lucroLiquido;
         sumSharpe += r.sharpe;
         sumDD += r.drawdown;
-        cumulativePoints.push(totalLucro);
-        labelsList.push(`Run #${idx + 1}`);
+        if (melhor === null || r.lucroLiquido > melhor) melhor = r.lucroLiquido;
+        points.push(isOp ? r.lucroLiquido : totalLucro);
+        labels.push(isOp ? `Passe #${idx + 1}` : `Run #${idx + 1}`);
 
-        const tr = document.createElement('tr');
-        tr.className = 'text-slate-200';
         const lucroClass = r.lucroLiquido >= 0 ? 'val-positive font-num' : 'val-negative font-num';
+        const ultima = isOp
+          ? `<td class="params-cell">${names.filter(n => n in r.params)
+              .map(n => `<span class="ptag">${esc(n.replace(/^Inp/, ''))}=<b>${esc(r.params[n])}</b></span>`).join('')
+              || '<span class="text-slate-600">—</span>'}</td>`
+          : `<td><button class="del-btn" onclick="askDelete(${idx})" title="Apagar resultado" aria-label="Apagar resultado">✕</button></td>`;
 
-        tr.innerHTML = `
+        parts.push(`<tr class="text-slate-200">
           <td class="font-mono text-slate-300 font-semibold">${esc(r.dataHora)}</td>
           <td class="${lucroClass}">$ ${fmtMoney(r.lucroLiquido)}</td>
           <td class="font-num val-negative">${r.drawdown.toFixed(2)}%</td>
@@ -693,104 +654,41 @@
           <td class="font-num val-positive">${r.pctVitoria.toFixed(2)}%</td>
           <td class="font-num text-slate-200">${r.fatorEA.toFixed(2)}</td>
           <td class="font-mono font-bold text-amber-400">${esc(r.timeframe)}</td>
-          <td><button class="del-btn" onclick="askDelete(${idx})" title="Apagar resultado" aria-label="Apagar resultado">✕</button></td>
-        `;
-        tableBody.appendChild(tr);
+          ${ultima}
+        </tr>`);
       });
+      body.innerHTML = parts.join('');
 
+      // Cartões do topo
       const total = rows.length;
-      const kpiProfit = document.getElementById('kpi-net-profit');
-      kpiProfit.innerText = `$ ${fmtMoney(totalLucro)}`;
-      kpiProfit.className = `text-3xl font-extrabold font-mono tracking-tight ${total === 0 ? 'text-white' : (totalLucro >= 0 ? 'text-[#00ff87]' : 'text-[#ff1744]')}`;
+      const kpiValor = isOp ? (melhor === null ? 0 : melhor) : totalLucro;
+      const kpiProfit = document.getElementById(`${p}-kpi-profit`);
+      kpiProfit.innerText = `$ ${fmtMoney(kpiValor)}`;
+      kpiProfit.className = `text-3xl font-extrabold font-mono tracking-tight ${total === 0 ? 'text-white' : (kpiValor >= 0 ? 'text-[#00ff87]' : 'text-[#ff1744]')}`;
+      document.getElementById(`${p}-kpi-total`).innerText = isOp ? totalFiltrado : total;
+      document.getElementById(`${p}-kpi-sharpe`).innerText = total ? (sumSharpe / total).toFixed(2) : '0.00';
+      document.getElementById(`${p}-kpi-dd`).innerText = total ? `${(sumDD / total).toFixed(2)}%` : '0.00%';
 
-      document.getElementById('kpi-total-tests').innerText = total;
-      document.getElementById('kpi-sharpe').innerText = total ? (sumSharpe / total).toFixed(2) : '0.00';
-      document.getElementById('kpi-drawdown').innerText = total ? `${(sumDD / total).toFixed(2)}%` : '0.00%';
-
-      updateEquityChart(labelsList, cumulativePoints);
+      if (st.chart) {
+        st.chart.data.labels = labels;
+        st.chart.data.datasets[0].data = points;
+        st.chart.update();
+      }
     }
 
-    // ---------- RENDER: OTIMIZAÇÃO ----------
-    function renderOpt() {
-      let rows = optRows;
-      if (optTF) rows = rows.filter(r => r.timeframe === optTF);
-
-      // KPIs (sobre todos os passes do filtro de timeframe)
-      document.getElementById('opt-kpi-total').innerText = rows.length;
-      document.getElementById('opt-kpi-best').innerText = rows.length
-        ? `$ ${fmtMoney(Math.max(...rows.map(r => r.lucroLiquido)))}` : '$ 0.00';
-      document.getElementById('opt-kpi-pos').innerText = rows.filter(r => r.lucroLiquido > 0).length;
-      document.getElementById('opt-kpi-sharpe').innerText = rows.length
-        ? Math.max(...rows.map(r => r.sharpe)).toFixed(2) : '0.00';
-
-      // Ordenação
-      const asc = (optSort === 'drawdown');
-      const sorted = rows.slice().sort((a, b) => asc ? a[optSort] - b[optSort] : b[optSort] - a[optSort]);
-      const shown = optLimit > 0 ? sorted.slice(0, optLimit) : sorted;
-
-      document.getElementById('opt-info').innerText =
-        `Mostrando ${shown.length} de ${rows.length} passes`;
-
-      // Quais parâmetros mudaram entre os passes?
-      let names = [];
-      if (showAllParams) {
-        const set = new Set();
-        rows.forEach(r => Object.keys(r.params).forEach(k => set.add(k)));
-        names = Array.from(set);
-      } else {
-        const firstVal = {};
-        const varying = new Set();
-        rows.forEach(r => {
-          Object.keys(r.params).forEach(k => {
-            if (!(k in firstVal)) firstVal[k] = r.params[k];
-            else if (firstVal[k] !== r.params[k]) varying.add(k);
-          });
-        });
-        names = Array.from(varying);
-      }
-
-      const body = document.getElementById('opt-body');
-      if (shown.length === 0) {
-        body.innerHTML = `<tr><td colspan="11" class="text-slate-400 font-mono py-6">Nenhum passe de otimização encontrado na planilha.</td></tr>`;
-        return;
-      }
-
-      const html = shown.map((r, i) => {
-        const lucroClass = r.lucroLiquido >= 0 ? 'val-positive' : 'val-negative';
-        const tags = names
-          .filter(n => n in r.params)
-          .map(n => `<span class="ptag">${esc(n.replace(/^Inp/, ''))}=<b>${esc(r.params[n])}</b></span>`)
-          .join('');
-        return `<tr>
-          <td class="text-slate-500">${i + 1}</td>
-          <td class="${lucroClass}">$ ${fmtMoney(r.lucroLiquido)}</td>
-          <td class="val-negative">${r.drawdown.toFixed(2)}%</td>
-          <td class="val-cyan">${r.sharpe.toFixed(2)}</td>
-          <td class="val-positive">${r.pctVitoria.toFixed(2)}%</td>
-          <td class="text-slate-200">${r.payoff.toFixed(2)}</td>
-          <td class="text-slate-200">${r.operacoes}</td>
-          <td class="val-positive">$ ${fmtMoney(r.maiorLucro)}</td>
-          <td class="val-negative">$ ${fmtMoney(r.maiorPerda)}</td>
-          <td class="font-mono font-bold text-amber-400">${esc(r.timeframe)}</td>
-          <td class="params">${tags || '<span class="text-slate-600">—</span>'}</td>
-        </tr>`;
-      }).join('');
-      body.innerHTML = html;
-    }
-
-    // ---------- GRÁFICO ----------
-    function initChart() {
-      const ctx = document.getElementById('equityCurveChart').getContext('2d');
+    // ---------- Gráfico ----------
+    function initChart(p) {
+      const ctx = document.getElementById(`${p}-chart`).getContext('2d');
       const gradient = ctx.createLinearGradient(0, 0, 0, 300);
       gradient.addColorStop(0, 'rgba(0, 242, 254, 0.35)');
       gradient.addColorStop(1, 'rgba(0, 242, 254, 0.0)');
 
-      equityChartInstance = new Chart(ctx, {
+      S[p].chart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: [],
           datasets: [{
-            label: 'Lucro Líquido Acumulado', data: [],
+            label: CFG[p].chartLabel, data: [],
             borderColor: '#00f2fe', borderWidth: 2.5, backgroundColor: gradient,
             fill: true, tension: 0.35, pointBackgroundColor: '#00f2fe', pointHoverRadius: 6
           }]
@@ -806,18 +704,13 @@
       });
     }
 
-    function updateEquityChart(labels, data) {
-      if (equityChartInstance) {
-        equityChartInstance.data.labels = labels;
-        equityChartInstance.data.datasets[0].data = data;
-        equityChartInstance.update();
-      }
-    }
-
     window.onload = function () {
-      renderHourButtons();
-      updateFilterUI();
-      initChart();
+      document.getElementById('view-bt').innerHTML = viewHTML('bt');
+      document.getElementById('view-op').innerHTML = viewHTML('op');
+      updateFilterUI('bt');
+      updateFilterUI('op');
+      initChart('bt');
+      initChart('op');
       fetchData();
       setInterval(fetchData, 30000);
     };
