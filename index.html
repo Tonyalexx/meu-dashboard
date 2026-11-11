@@ -442,6 +442,9 @@
           const cols = parseCSVLine(rows[i]);
           if (cols.length < 5) continue;
 
+          // Resultados de otimização ainda não são exibidos aqui (só backtests normais)
+          if ((cols[12] || '').trim().toUpperCase() === 'OTIMIZACAO') continue;
+
           const tfRaw = (cols[11] || '').trim().toUpperCase();
 
           parsed.push({
