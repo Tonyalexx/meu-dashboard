@@ -63,6 +63,29 @@
     .val-negative { color: #ff1744; font-weight: 700; }
     .val-cyan { color: #00f2fe; font-weight: 700; }
 
+    /* ===== TABELA COMPACTA (OTIMIZAÇÃO) ===== */
+    .opt-table { border-collapse: collapse; width: 100%; }
+    .opt-table th {
+      position: sticky; top: 0; background: #0b1220; color: #00f2fe;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 10px 12px; text-align: center; white-space: nowrap; border-bottom: 1px solid #25354e;
+    }
+    .opt-table td {
+      padding: 10px 12px; text-align: center; white-space: nowrap;
+      font-family: 'Space Grotesk', sans-serif; font-size: 14px;
+      font-variant-numeric: tabular-nums; border-bottom: 1px solid #1a2538;
+    }
+    .opt-table tbody tr:hover td { background: #1b2942; }
+    .opt-table td.params {
+      white-space: normal; text-align: left; min-width: 320px; max-width: 560px;
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #94a3b8; line-height: 1.6;
+    }
+    .ptag {
+      display: inline-block; background: #0b1220; border: 1px solid #25354e; border-radius: 6px;
+      padding: 1px 6px; margin: 2px 3px 2px 0; color: #cbd5e1;
+    }
+    .ptag b { color: #fbbf24; font-weight: 600; }
+
     /* ===== BOTÃO APAGAR (bolinha vermelha com X) ===== */
     .del-btn {
       width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
@@ -111,6 +134,27 @@
     .period-wrap { display: flex; flex-wrap: wrap; gap: 10px; }
     .period-wrap .chip { padding: 11px 18px; font-size: 13px; border-radius: 999px; }
     @media (max-width: 520px) { .hour-grid { grid-template-columns: repeat(4, 1fr); } }
+
+    /* ===== ABAS ===== */
+    .tab-btn {
+      padding: 10px 22px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+      border-radius: 12px; background: #0b1220; border: 1px solid #1e293b; color: #94a3b8;
+      cursor: pointer; transition: all 0.18s ease;
+    }
+    .tab-btn:hover { color: #fff; border-color: rgba(0, 242, 254, 0.5); }
+    .tab-btn.active {
+      color: #00f2fe; border-color: #00f2fe; background: rgba(0, 242, 254, 0.08);
+      box-shadow: 0 0 14px rgba(0, 242, 254, 0.25);
+    }
+    .tab-count {
+      margin-left: 8px; font-size: 11px; background: #1e293b; color: #cbd5e1;
+      padding: 2px 8px; border-radius: 999px;
+    }
+    .opt-select {
+      background: #0b1220; border: 1px solid #1e293b; color: #e2e8f0; border-radius: 10px;
+      padding: 8px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .opt-select:focus { outline: none; border-color: #00f2fe; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between overflow-x-hidden text-sm">
@@ -139,114 +183,206 @@
   <!-- MAIN -->
   <main class="flex-1 p-4 md:p-6 space-y-6 max-w-[1800px] mx-auto w-full">
 
-    <!-- KPIs -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-cardBg border border-cyan-500/30 rounded-xl p-4 flex justify-between items-start glow-cyan">
-        <div class="space-y-1">
-          <p class="text-xs uppercase font-semibold text-slate-400">Lucro Líquido Acumulado</p>
-          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-net-profit">$ 0.00</h2>
+    <!-- ABAS -->
+    <div class="flex gap-3">
+      <button id="tab-bt" onclick="switchTab('bt')" class="tab-btn active"><i class="fa-solid fa-chart-line mr-2"></i>BACKTESTS<span id="count-bt" class="tab-count">0</span></button>
+      <button id="tab-opt" onclick="switchTab('opt')" class="tab-btn"><i class="fa-solid fa-dna mr-2"></i>OTIMIZAÇÃO<span id="count-opt" class="tab-count">0</span></button>
+    </div>
+
+    <!-- ================= VISÃO: BACKTESTS ================= -->
+    <div id="view-bt" class="space-y-6">
+
+      <!-- KPIs -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-cardBg border border-cyan-500/30 rounded-xl p-4 flex justify-between items-start glow-cyan">
+          <div class="space-y-1">
+            <p class="text-xs uppercase font-semibold text-slate-400">Lucro Líquido Acumulado</p>
+            <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-net-profit">$ 0.00</h2>
+          </div>
+          <div class="p-2.5 rounded-lg bg-cyan-950/50 border border-cyan-500/40 text-cyan-400"><i class="fa-solid fa-arrow-trend-up text-lg"></i></div>
         </div>
-        <div class="p-2.5 rounded-lg bg-cyan-950/50 border border-cyan-500/40 text-cyan-400"><i class="fa-solid fa-arrow-trend-up text-lg"></i></div>
+        <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex justify-between items-start">
+          <div class="space-y-1">
+            <p class="text-xs uppercase font-semibold text-slate-400">Total de Backtests</p>
+            <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-total-tests">0</h2>
+          </div>
+          <div class="p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300"><i class="fa-solid fa-database text-lg"></i></div>
+        </div>
+        <div class="bg-cardBg border border-emerald-500/30 rounded-xl p-4 flex justify-between items-start">
+          <div class="space-y-1">
+            <p class="text-xs uppercase font-semibold text-slate-400">Sharpe Médio</p>
+            <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-sharpe">0.00</h2>
+          </div>
+          <div class="p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-[#00ff87]"><i class="fa-solid fa-shield-halved text-lg"></i></div>
+        </div>
+        <div class="bg-cardBg border border-rose-500/30 rounded-xl p-4 flex justify-between items-start">
+          <div class="space-y-1">
+            <p class="text-xs uppercase font-semibold text-slate-400">Rebaixamento Médio</p>
+            <h2 class="text-3xl font-extrabold text-[#ff1744] font-mono tracking-tight" id="kpi-drawdown">0.00%</h2>
+          </div>
+          <div class="p-2.5 rounded-lg bg-rose-950/50 border border-rose-500/40 text-[#ff1744]"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+        </div>
       </div>
-      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex justify-between items-start">
-        <div class="space-y-1">
-          <p class="text-xs uppercase font-semibold text-slate-400">Total de Backtests</p>
-          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-total-tests">0</h2>
+
+      <!-- EQUITY CURVE -->
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex flex-col justify-between relative">
+        <div class="mb-4">
+          <h3 class="font-bold text-base text-slate-100">Curva de Capital (Equity Curve) - Lucro Líquido Acumulado</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Evolução dos resultados em tempo real baseada nos envios do MetaTrader 5</p>
         </div>
-        <div class="p-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300"><i class="fa-solid fa-database text-lg"></i></div>
+        <div class="h-80 w-full relative"><canvas id="equityCurveChart"></canvas></div>
       </div>
-      <div class="bg-cardBg border border-emerald-500/30 rounded-xl p-4 flex justify-between items-start">
-        <div class="space-y-1">
-          <p class="text-xs uppercase font-semibold text-slate-400">Sharpe Médio</p>
-          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="kpi-sharpe">0.00</h2>
+
+      <!-- PAINEL DE FILTROS -->
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-sliders text-rose-500"></i>
+            <h3 class="font-bold text-base text-slate-100">Painel de Filtros</h3>
+          </div>
+          <span class="text-xs text-slate-400">Selecione para filtrar estratégias</span>
         </div>
-        <div class="p-2.5 rounded-lg bg-emerald-950/50 border border-emerald-500/40 text-[#00ff87]"><i class="fa-solid fa-shield-halved text-lg"></i></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="fcard">
+            <div class="fcard-head">
+              <div class="fcard-icon"><i class="fa-regular fa-clock"></i></div>
+              <span class="fcard-title">Timeframe</span>
+              <button id="off-tf" onclick="setOff('tf')" class="off-btn active">OFF</button>
+            </div>
+            <div class="tf-grid" id="tf-container">
+              <button onclick="selectTimeframe(this)" data-tf="M1" class="tf-btn chip">M1</button>
+              <button onclick="selectTimeframe(this)" data-tf="M5" class="tf-btn chip">M5</button>
+              <button onclick="selectTimeframe(this)" data-tf="M15" class="tf-btn chip">M15</button>
+            </div>
+          </div>
+
+          <div class="fcard">
+            <div class="fcard-head">
+              <div class="fcard-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+              <span class="fcard-title">Horário (Hora de Início)</span>
+              <button id="off-hour" onclick="setOff('hour')" class="off-btn active">OFF</button>
+            </div>
+            <div class="hour-grid" id="hour-container"></div>
+          </div>
+
+          <div class="fcard">
+            <div class="fcard-head">
+              <div class="fcard-icon"><i class="fa-regular fa-calendar-days"></i></div>
+              <span class="fcard-title">Período</span>
+              <button id="off-period" onclick="setOff('period')" class="off-btn active">OFF</button>
+            </div>
+            <div class="period-wrap" id="period-container">
+              <button onclick="selectPeriod(this)" class="period-btn chip">1 Ano</button>
+              <button onclick="selectPeriod(this)" class="period-btn chip">6 Meses</button>
+              <button onclick="selectPeriod(this)" class="period-btn chip">3 Meses</button>
+              <button onclick="selectPeriod(this)" class="period-btn chip">1 Mês</button>
+              <button onclick="selectPeriod(this)" class="period-btn chip">1 Semana</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="bg-cardBg border border-rose-500/30 rounded-xl p-4 flex justify-between items-start">
-        <div class="space-y-1">
-          <p class="text-xs uppercase font-semibold text-slate-400">Rebaixamento Médio</p>
-          <h2 class="text-3xl font-extrabold text-[#ff1744] font-mono tracking-tight" id="kpi-drawdown">0.00%</h2>
+
+      <!-- TABELA -->
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
+        <div>
+          <h3 class="font-bold text-base text-slate-100">Resultados Detalhados dos Backtests</h3>
+          <p class="text-xs text-slate-400">Sincronizado automaticamente da planilha do Google Sheets</p>
         </div>
-        <div class="p-2.5 rounded-lg bg-rose-950/50 border border-rose-500/40 text-[#ff1744]"><i class="fa-solid fa-triangle-exclamation text-lg"></i></div>
+        <div class="overflow-x-auto">
+          <table class="custom-table text-xs">
+            <thead>
+              <tr class="text-cyan-400 font-semibold uppercase">
+                <th>Data / Hora</th><th>Lucro Líquido</th><th>Drawdown</th><th>Maior Lucro</th>
+                <th>Maior Perda</th><th>Ganhos Consec.</th><th>Perdas Consec.</th><th>Operações</th>
+                <th>Sharpe</th><th>% Vitória</th><th>Fator EA</th><th>Timeframe</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="table-body" class="font-medium"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- EQUITY CURVE -->
-    <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex flex-col justify-between relative">
-      <div class="mb-4">
-        <h3 class="font-bold text-base text-slate-100">Curva de Capital (Equity Curve) - Lucro Líquido Acumulado</h3>
-        <p class="text-xs text-slate-400 mt-0.5">Evolução dos resultados em tempo real baseada nos envios do MetaTrader 5</p>
-      </div>
-      <div class="h-80 w-full relative"><canvas id="equityCurveChart"></canvas></div>
-    </div>
+    <!-- ================= VISÃO: OTIMIZAÇÃO ================= -->
+    <div id="view-opt" class="space-y-6 hidden">
 
-    <!-- PAINEL DE FILTROS -->
-    <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <div class="flex items-center space-x-2">
-          <i class="fa-solid fa-sliders text-rose-500"></i>
-          <h3 class="font-bold text-base text-slate-100">Painel de Filtros</h3>
+      <!-- RESUMO -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-cardBg border border-cyan-500/30 rounded-xl p-4 glow-cyan">
+          <p class="text-xs uppercase font-semibold text-slate-400">Passes Recebidos</p>
+          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="opt-kpi-total">0</h2>
         </div>
-        <span class="text-xs text-slate-400">Selecione para filtrar estratégias</span>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="fcard">
-          <div class="fcard-head">
-            <div class="fcard-icon"><i class="fa-regular fa-clock"></i></div>
-            <span class="fcard-title">Timeframe</span>
-            <button id="off-tf" onclick="setOff('tf')" class="off-btn active">OFF</button>
-          </div>
-          <div class="tf-grid" id="tf-container">
-            <button onclick="selectTimeframe(this)" data-tf="M1" class="tf-btn chip">M1</button>
-            <button onclick="selectTimeframe(this)" data-tf="M5" class="tf-btn chip">M5</button>
-            <button onclick="selectTimeframe(this)" data-tf="M15" class="tf-btn chip">M15</button>
-          </div>
+        <div class="bg-cardBg border border-emerald-500/30 rounded-xl p-4">
+          <p class="text-xs uppercase font-semibold text-slate-400">Melhor Lucro</p>
+          <h2 class="text-3xl font-extrabold text-[#00ff87] font-mono tracking-tight" id="opt-kpi-best">$ 0.00</h2>
         </div>
-
-        <div class="fcard">
-          <div class="fcard-head">
-            <div class="fcard-icon"><i class="fa-solid fa-hourglass-half"></i></div>
-            <span class="fcard-title">Horário (Hora de Início)</span>
-            <button id="off-hour" onclick="setOff('hour')" class="off-btn active">OFF</button>
-          </div>
-          <div class="hour-grid" id="hour-container"></div>
+        <div class="bg-cardBg border border-cardBorder rounded-xl p-4">
+          <p class="text-xs uppercase font-semibold text-slate-400">Passes Lucrativos</p>
+          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="opt-kpi-pos">0</h2>
         </div>
-
-        <div class="fcard">
-          <div class="fcard-head">
-            <div class="fcard-icon"><i class="fa-regular fa-calendar-days"></i></div>
-            <span class="fcard-title">Período</span>
-            <button id="off-period" onclick="setOff('period')" class="off-btn active">OFF</button>
-          </div>
-          <div class="period-wrap" id="period-container">
-            <button onclick="selectPeriod(this)" class="period-btn chip">1 Ano</button>
-            <button onclick="selectPeriod(this)" class="period-btn chip">6 Meses</button>
-            <button onclick="selectPeriod(this)" class="period-btn chip">3 Meses</button>
-            <button onclick="selectPeriod(this)" class="period-btn chip">1 Mês</button>
-            <button onclick="selectPeriod(this)" class="period-btn chip">1 Semana</button>
-          </div>
+        <div class="bg-cardBg border border-rose-500/30 rounded-xl p-4">
+          <p class="text-xs uppercase font-semibold text-slate-400">Melhor Sharpe</p>
+          <h2 class="text-3xl font-extrabold text-white font-mono tracking-tight" id="opt-kpi-sharpe">0.00</h2>
         </div>
       </div>
-    </div>
 
-    <!-- TABELA -->
-    <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-4">
-      <div>
-        <h3 class="font-bold text-base text-slate-100">Resultados Detalhados dos Backtests</h3>
-        <p class="text-xs text-slate-400">Sincronizado automaticamente da planilha do Google Sheets</p>
+      <!-- CONTROLES -->
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Ordenar por</span>
+          <select id="opt-sort" class="opt-select" onchange="optSort=this.value; renderOpt()">
+            <option value="lucroLiquido">Lucro Líquido (maior)</option>
+            <option value="sharpe">Sharpe (maior)</option>
+            <option value="drawdown">Drawdown (menor)</option>
+            <option value="pctVitoria">% Vitória (maior)</option>
+            <option value="payoff">Payoff (maior)</option>
+            <option value="operacoes">Operações (maior)</option>
+            <option value="maiorPerda">Maior Perda (menos negativa)</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Mostrar</span>
+          <select id="opt-limit" class="opt-select" onchange="optLimit=Number(this.value); renderOpt()">
+            <option value="50">Top 50</option>
+            <option value="100" selected>Top 100</option>
+            <option value="500">Top 500</option>
+            <option value="0">Todos</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Timeframe</span>
+          <select id="opt-tf" class="opt-select" onchange="optTF=this.value||null; renderOpt()">
+            <option value="">Todos</option>
+            <option value="M1">M1</option>
+            <option value="M5">M5</option>
+            <option value="M15">M15</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Parâmetros</span>
+          <button id="opt-params-toggle" onclick="toggleParams()" class="chip px-4 py-2 text-xs">Só os que variam</button>
+        </div>
+        <span id="opt-info" class="ml-auto text-xs text-slate-400"></span>
       </div>
-      <div class="overflow-x-auto">
-        <table class="custom-table text-xs">
-          <thead>
-            <tr class="text-cyan-400 font-semibold uppercase">
-              <th>Data / Hora</th><th>Lucro Líquido</th><th>Drawdown</th><th>Maior Lucro</th>
-              <th>Maior Perda</th><th>Ganhos Consec.</th><th>Perdas Consec.</th><th>Operações</th>
-              <th>Sharpe</th><th>% Vitória</th><th>Fator EA</th><th>Timeframe</th><th></th>
-            </tr>
-          </thead>
-          <tbody id="table-body" class="font-medium"></tbody>
-        </table>
+
+      <!-- TABELA -->
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-3">
+        <div>
+          <h3 class="font-bold text-base text-slate-100">Resultados da Otimização</h3>
+          <p class="text-xs text-slate-400">Cada linha é um passe da otimização genética do MT5, com os parâmetros usados</p>
+        </div>
+        <div class="overflow-auto max-h-[70vh]">
+          <table class="opt-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Lucro Líquido</th><th>Drawdown</th><th>Sharpe</th><th>% Vitória</th><th>Payoff</th>
+                <th>Operações</th><th>Maior Lucro</th><th>Maior Perda</th><th>TF</th><th>Parâmetros</th>
+              </tr>
+            </thead>
+            <tbody id="opt-body"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -280,6 +416,14 @@
     let selectedTF = null;
     let selectedHour = null;
     let selectedPeriod = null;
+
+    // ---- Otimização ----
+    let optRows = [];
+    let optSort = 'lucroLiquido';
+    let optLimit = 100;
+    let optTF = null;
+    let showAllParams = false;
+    let currentTab = 'bt';
 
     function parseCSVLine(line) {
       const out = [];
@@ -316,7 +460,20 @@
     }
 
     const fmtMoney = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+    // ---------- ABAS ----------
+    function switchTab(t) {
+      currentTab = t;
+      document.getElementById('view-bt').classList.toggle('hidden', t !== 'bt');
+      document.getElementById('view-opt').classList.toggle('hidden', t !== 'opt');
+      document.getElementById('tab-bt').classList.toggle('active', t === 'bt');
+      document.getElementById('tab-opt').classList.toggle('active', t === 'opt');
+      if (t === 'opt') renderOpt();
+      if (t === 'bt' && equityChartInstance) equityChartInstance.resize();
+    }
+
+    // ---------- FILTROS (BACKTESTS) ----------
     function renderHourButtons() {
       const container = document.getElementById('hour-container');
       if (!container) return;
@@ -371,6 +528,7 @@
       return [r.dataHora, r.timeframe, r.lucroLiquido.toFixed(2), r.operacoes].join('|');
     }
 
+    // ---------- APAGAR ----------
     function askDelete(idx) {
       rowToDelete = visibleRows[idx];
       if (!rowToDelete) return;
@@ -411,6 +569,30 @@
       }
     }
 
+    // ---------- PARÂMETROS DA OTIMIZAÇÃO ----------
+    // O MT5 manda cada parâmetro como "Nome=valor||inicio||passo||fim||flag".
+    // Aqui ficamos só com "Nome" e "valor".
+    function parseParams(str) {
+      const map = {};
+      if (!str) return map;
+      str.split(';').forEach(part => {
+        const p = part.trim().split('||')[0].trim();
+        if (!p) return;
+        const i = p.indexOf('=');
+        if (i <= 0) return;
+        map[p.slice(0, i).trim()] = p.slice(i + 1).trim();
+      });
+      return map;
+    }
+
+    function toggleParams() {
+      showAllParams = !showAllParams;
+      document.getElementById('opt-params-toggle').innerText = showAllParams ? 'Todos' : 'Só os que variam';
+      document.getElementById('opt-params-toggle').classList.toggle('active', showAllParams);
+      renderOpt();
+    }
+
+    // ---------- BUSCAR DADOS ----------
     async function fetchData() {
       try {
         const response = await fetch(CSV_URL + '&t=' + Date.now(), { cache: 'no-store' });
@@ -424,12 +606,12 @@
         const startIdx = /^[\s$\-+0-9.,]+$/.test(firstCols[1] || '') ? 0 : 1;
 
         const parsed = [];
+        const parsedOpt = [];
         for (let i = startIdx; i < rows.length; i++) {
           const cols = parseCSVLine(rows[i]);
           if (cols.length < 5) continue;
-          if ((cols[12] || '').trim().toUpperCase() === 'OTIMIZACAO') continue;
 
-          parsed.push({
+          const base = {
             dataHora:     cols[0] || '-',
             lucroLiquido: cleanNum(cols[1]),
             drawdown:     cleanNum(cols[2]),
@@ -442,18 +624,36 @@
             pctVitoria:   cleanNum(cols[9]),
             fatorEA:      cleanNum(cols[10]),
             timeframe:    (cols[11] || '').trim().toUpperCase() || '-'
-          });
+          };
+
+          if ((cols[12] || '').trim().toUpperCase() === 'OTIMIZACAO') {
+            base.payoff = base.fatorEA;
+            base.passe = cols[13] || '';
+            base.params = parseParams(cols[14] || '');
+            parsedOpt.push(base);
+          } else {
+            parsed.push(base);
+          }
         }
 
         const present = new Set(parsed.map(rowKey));
         deletedKeys.forEach(k => { if (!present.has(k)) deletedKeys.delete(k); });
         allRows = parsed.filter(r => !deletedKeys.has(rowKey(r)));
+        optRows = parsedOpt;
+
+        document.getElementById('count-bt').innerText = allRows.length;
+        document.getElementById('count-opt').innerText = optRows.length;
+
         renderDashboard();
+        if (currentTab === 'opt') renderOpt();
       } catch (err) {
         console.log('Aguardando sincronização com dados da planilha');
+        const st = document.getElementById('sync-text');
+        if (st) st.innerText = 'Aguardando planilha...';
       }
     }
 
+    // ---------- RENDER: BACKTESTS ----------
     function renderDashboard() {
       const rows = (selectedTF === null) ? allRows : allRows.filter(r => r.timeframe === selectedTF);
       visibleRows = rows;
@@ -481,7 +681,7 @@
         const lucroClass = r.lucroLiquido >= 0 ? 'val-positive font-num' : 'val-negative font-num';
 
         tr.innerHTML = `
-          <td class="font-mono text-slate-300 font-semibold">${r.dataHora}</td>
+          <td class="font-mono text-slate-300 font-semibold">${esc(r.dataHora)}</td>
           <td class="${lucroClass}">$ ${fmtMoney(r.lucroLiquido)}</td>
           <td class="font-num val-negative">${r.drawdown.toFixed(2)}%</td>
           <td class="font-num val-positive">$ ${fmtMoney(r.maiorLucro)}</td>
@@ -492,7 +692,7 @@
           <td class="font-num val-cyan">${r.sharpe.toFixed(2)}</td>
           <td class="font-num val-positive">${r.pctVitoria.toFixed(2)}%</td>
           <td class="font-num text-slate-200">${r.fatorEA.toFixed(2)}</td>
-          <td class="font-mono font-bold text-amber-400">${r.timeframe}</td>
+          <td class="font-mono font-bold text-amber-400">${esc(r.timeframe)}</td>
           <td><button class="del-btn" onclick="askDelete(${idx})" title="Apagar resultado" aria-label="Apagar resultado">✕</button></td>
         `;
         tableBody.appendChild(tr);
@@ -510,6 +710,75 @@
       updateEquityChart(labelsList, cumulativePoints);
     }
 
+    // ---------- RENDER: OTIMIZAÇÃO ----------
+    function renderOpt() {
+      let rows = optRows;
+      if (optTF) rows = rows.filter(r => r.timeframe === optTF);
+
+      // KPIs (sobre todos os passes do filtro de timeframe)
+      document.getElementById('opt-kpi-total').innerText = rows.length;
+      document.getElementById('opt-kpi-best').innerText = rows.length
+        ? `$ ${fmtMoney(Math.max(...rows.map(r => r.lucroLiquido)))}` : '$ 0.00';
+      document.getElementById('opt-kpi-pos').innerText = rows.filter(r => r.lucroLiquido > 0).length;
+      document.getElementById('opt-kpi-sharpe').innerText = rows.length
+        ? Math.max(...rows.map(r => r.sharpe)).toFixed(2) : '0.00';
+
+      // Ordenação
+      const asc = (optSort === 'drawdown');
+      const sorted = rows.slice().sort((a, b) => asc ? a[optSort] - b[optSort] : b[optSort] - a[optSort]);
+      const shown = optLimit > 0 ? sorted.slice(0, optLimit) : sorted;
+
+      document.getElementById('opt-info').innerText =
+        `Mostrando ${shown.length} de ${rows.length} passes`;
+
+      // Quais parâmetros mudaram entre os passes?
+      let names = [];
+      if (showAllParams) {
+        const set = new Set();
+        rows.forEach(r => Object.keys(r.params).forEach(k => set.add(k)));
+        names = Array.from(set);
+      } else {
+        const firstVal = {};
+        const varying = new Set();
+        rows.forEach(r => {
+          Object.keys(r.params).forEach(k => {
+            if (!(k in firstVal)) firstVal[k] = r.params[k];
+            else if (firstVal[k] !== r.params[k]) varying.add(k);
+          });
+        });
+        names = Array.from(varying);
+      }
+
+      const body = document.getElementById('opt-body');
+      if (shown.length === 0) {
+        body.innerHTML = `<tr><td colspan="11" class="text-slate-400 font-mono py-6">Nenhum passe de otimização encontrado na planilha.</td></tr>`;
+        return;
+      }
+
+      const html = shown.map((r, i) => {
+        const lucroClass = r.lucroLiquido >= 0 ? 'val-positive' : 'val-negative';
+        const tags = names
+          .filter(n => n in r.params)
+          .map(n => `<span class="ptag">${esc(n.replace(/^Inp/, ''))}=<b>${esc(r.params[n])}</b></span>`)
+          .join('');
+        return `<tr>
+          <td class="text-slate-500">${i + 1}</td>
+          <td class="${lucroClass}">$ ${fmtMoney(r.lucroLiquido)}</td>
+          <td class="val-negative">${r.drawdown.toFixed(2)}%</td>
+          <td class="val-cyan">${r.sharpe.toFixed(2)}</td>
+          <td class="val-positive">${r.pctVitoria.toFixed(2)}%</td>
+          <td class="text-slate-200">${r.payoff.toFixed(2)}</td>
+          <td class="text-slate-200">${r.operacoes}</td>
+          <td class="val-positive">$ ${fmtMoney(r.maiorLucro)}</td>
+          <td class="val-negative">$ ${fmtMoney(r.maiorPerda)}</td>
+          <td class="font-mono font-bold text-amber-400">${esc(r.timeframe)}</td>
+          <td class="params">${tags || '<span class="text-slate-600">—</span>'}</td>
+        </tr>`;
+      }).join('');
+      body.innerHTML = html;
+    }
+
+    // ---------- GRÁFICO ----------
     function initChart() {
       const ctx = document.getElementById('equityCurveChart').getContext('2d');
       const gradient = ctx.createLinearGradient(0, 0, 0, 300);
