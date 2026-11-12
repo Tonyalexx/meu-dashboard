@@ -216,6 +216,38 @@
       padding: 8px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
     }
     .opt-select:focus { outline: none; border-color: #00f2fe; }
+
+    /* ===== CELULAR: tabela vira lista de cartões e ajustes de tamanho ===== */
+    @media (max-width: 768px) {
+      .custom-table, .custom-table tbody, .custom-table tr, .custom-table td { display: block; width: 100%; }
+      .custom-table thead { display: none; }
+      .custom-table { border-spacing: 0; }
+      .custom-table tbody tr {
+        margin-bottom: 14px; padding: 6px 14px; background: #0f1a2b;
+        border: 1.5px solid #25354e; border-radius: 14px;
+      }
+      .custom-table tbody tr:hover, .custom-table tbody tr.sel {
+        background: #1b2942; border-color: #00f2fe; box-shadow: 0 0 14px rgba(0, 242, 254, 0.2);
+      }
+      .custom-table td, .custom-table tbody tr:hover td, .custom-table tbody tr.sel td,
+      .custom-table tbody tr td:first-child, .custom-table tbody tr td:last-child {
+        display: flex; justify-content: space-between; align-items: center; text-align: right;
+        padding: 10px 0; font-size: 15px; white-space: normal;
+        background: transparent !important; box-shadow: none !important; border-radius: 0 !important;
+        border: none !important; border-bottom: 1px dashed #1e293b !important;
+      }
+      .custom-table td::before {
+        content: attr(data-label); margin-right: 12px; text-align: left;
+        font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #64748b;
+      }
+      .custom-table tbody tr td:last-child { border-bottom: none !important; justify-content: flex-end; }
+      .custom-table tbody tr td:last-child::before { content: none; }
+
+      .tab-btn { width: 100%; text-align: left; padding: 12px 14px; font-size: 12px; }
+      .opt-select { font-size: 16px; }
+      .fcard { padding: 14px; }
+      #tv-chart { height: 70vh !important; min-height: 400px !important; }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between overflow-x-hidden text-sm">
@@ -594,11 +626,22 @@
     const RSI_TFS = [['1min', '1 min'], ['5min', '5 min'], ['15min', '15 min'], ['1h', '1 hora'],
                      ['4h', '4 horas'], ['1day', '1 dia'], ['1week', '1 sem'], ['1month', '1 mês']];
     let rsiLast = 0;
+    let rsiSent = 0;
+    let rsiTimer = null;
 
     function rsiBuild() {
       document.getElementById('rsi-grid').innerHTML = RSI_TFS.map(([k, nome]) =>
         `<div class="rsi-box"><div class="rsi-top">RSI</div>
           <div class="rsi-mid"><span class="rsi-tf">${nome}</span><span class="rsi-val off" id="rsi-${k}">--</span></div></div>`).join('');
+    }
+
+    // O plano grátis permite 8 pedidos por minuto e uma atualização completa usa 8.
+    // Por isso, se pedirem outra antes de 62s, ela fica na fila e roda sozinha.
+    function agendarRSI(ms) {
+      clearTimeout(rsiTimer);
+      document.getElementById('rsi-status').innerText =
+        'Aguardando o limite do plano grátis (' + Math.ceil(ms / 1000) + 's)...';
+      rsiTimer = setTimeout(loadRSI, ms);
     }
 
     async function loadRSI() {
@@ -607,6 +650,9 @@
         status.innerText = 'Falta colocar a chave do Twelve Data no código';
         return;
       }
+      const faltam = 62000 - (Date.now() - rsiSent);
+      if (faltam > 0) { agendarRSI(faltam); return; }
+      rsiSent = Date.now();
       rsiLast = Date.now();
       const my = ++rsiToken;
       const sym = currentAsset.td;
@@ -632,7 +678,7 @@
       }));
       if (my !== rsiToken) return;
       const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      status.innerText = erro ? `Erro: ${erro}` : `Atualizado às ${hora} · abaixo de 30 verde, acima de 70 vermelho`;
+      status.innerText = erro ? (/credits/i.test(erro) ? 'Limite por minuto do plano grátis atingido. Espere 1 minuto.' : `Erro: ${erro}`) : `Atualizado às ${hora} · abaixo de 30 verde, acima de 70 vermelho`;
     }
 
     // ---------- Gráfico TradingView (carrega só na primeira vez que abre a aba) ----------
@@ -684,6 +730,8 @@
         if (el) { el.innerText = '--'; el.className = 'rsi-val off'; }
       });
       rsiLast = 0;
+      rsiToken++;
+      clearTimeout(rsiTimer);
       if (tvLoaded) buildTV();
       if (currentTab === 'ch') loadRSI();
     }
@@ -1073,6 +1121,15 @@
         </tr>`);
       });
       body.innerHTML = parts.join('');
+
+      // Nomes das colunas, usados pela tabela em formato de cartão no celular
+      const LABELS = ['Data / Hora', 'Lucro Líquido', 'Drawdown', 'Maior Lucro', 'Maior Perda',
+        'Ganhos Consec.', 'Perdas Consec.', 'Operações', 'Sharpe', '% Vitória', 'Fator EA', 'Timeframe'];
+      body.querySelectorAll('tr').forEach(tr => {
+        tr.querySelectorAll('td').forEach((td, i) => {
+          if (td.colSpan === 1 && LABELS[i]) td.setAttribute('data-label', LABELS[i]);
+        });
+      });
 
       // ---------- Cartões + gráfico (só o selecionado, se houver) ----------
       const calc = st.selected ? rows.filter(r => selKey(r) === st.selected) : rows;
