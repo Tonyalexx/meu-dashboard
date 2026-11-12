@@ -59,39 +59,20 @@
       background-color: #1b2942; border-color: #00f2fe;
       box-shadow: 0 4px 22px rgba(0, 242, 254, 0.15); transition: all 0.2s ease;
     }
-    .custom-table td.params-cell {
-      white-space: normal; text-align: left; min-width: 340px; max-width: 520px;
-      font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #94a3b8;
-      line-height: 1.7; padding: 14px 16px; letter-spacing: 0;
-    }
-    .custom-table.tight { border-spacing: 0; }
-    .custom-table.tight tr.pt td { border-bottom: none; border-bottom-left-radius: 0 !important; border-bottom-right-radius: 0 !important; }
-    .custom-table.tight tr.pb td {
-      border-top: none; border-left: 1.5px solid #25354e; border-right: 1.5px solid #25354e;
-      border-radius: 0 0 12px 12px; min-width: 0; max-width: none; padding: 4px 18px 16px;
-    }
-    .custom-table.tight tr.sp td { background: none; border: none !important; padding: 0; height: 18px; border-radius: 0 !important; box-shadow: none !important; }
-    .custom-table.tight tr.pt:hover td, .custom-table.tight tr.pt:hover + tr.pb td {
-      background-color: #1b2942; border-color: #00f2fe; box-shadow: none;
-    }
 
     /* ===== LINHA SELECIONADA (clique) ===== */
-    .custom-table tbody tr.pt, .custom-table tbody tr.pb { cursor: pointer; }
-    .custom-table:not(.tight) tbody tr { cursor: pointer; }
+    .custom-table tbody tr { cursor: pointer; }
     .custom-table tbody tr.sel td {
       background-color: #1b2942; border-color: #00f2fe;
       box-shadow: 0 0 18px rgba(0, 242, 254, 0.25);
     }
-    .custom-table.tight tbody tr.sel td { box-shadow: none; }
 
-    .ptag {
-      display: inline-block; background: #0b1220; border: 1px solid #25354e; border-radius: 6px;
-      padding: 1px 6px; margin: 2px 3px 2px 0; color: #cbd5e1;
-    }
-    .ptag b { color: #fbbf24; font-weight: 600; }
     .val-positive { color: #00ff87; font-weight: 700; }
     .val-negative { color: #ff1744; font-weight: 700; }
     .val-cyan { color: #00f2fe; font-weight: 700; }
+
+    /* ===== AÇÕES (engrenagem + apagar) ===== */
+    .act-wrap { display: inline-flex; align-items: center; gap: 14px; }
 
     /* ===== BOTÃO APAGAR (bolinha vermelha com X) ===== */
     .del-btn {
@@ -100,6 +81,30 @@
       display: inline-flex; align-items: center; justify-content: center; transition: all 0.18s ease;
     }
     .del-btn:hover { transform: scale(1.15); box-shadow: 0 0 14px rgba(255, 23, 68, 0.7); }
+
+    /* ===== BOTÃO ENGRENAGEM (mesmo tamanho da bolinha) ===== */
+    .gear-btn {
+      width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+      background: #0b1220; border: 1.5px solid #25354e; color: #00f2fe; font-size: 14px; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center; transition: all 0.18s ease;
+    }
+    .gear-btn:hover { transform: scale(1.15) rotate(45deg); border-color: #00f2fe; box-shadow: 0 0 14px rgba(0, 242, 254, 0.6); }
+
+    /* ===== JANELA DE PARÂMETROS ===== */
+    .pm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    @media (max-width: 520px) { .pm-grid { grid-template-columns: 1fr; } }
+    .pm-item {
+      display: flex; justify-content: space-between; gap: 12px; background: #0b1220;
+      border: 1px solid #25354e; border-radius: 8px; padding: 8px 12px;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #cbd5e1;
+    }
+    .pm-item b { color: #fbbf24; font-weight: 600; text-align: right; }
+    .pm-close {
+      width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
+      background: #ff1744; color: #fff; font-size: 15px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center; transition: all 0.18s ease;
+    }
+    .pm-close:hover { transform: scale(1.15); box-shadow: 0 0 14px rgba(255, 23, 68, 0.7); }
 
     /* ===== BOTÃO EXCLUIR TUDO (retangular vermelho) ===== */
     .del-all-btn {
@@ -211,6 +216,7 @@
 
   </main>
 
+  <!-- JANELA DE CONFIRMAÇÃO DE APAGAR -->
   <div id="del-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/70">
     <div class="bg-cardBg border border-cardBorder rounded-2xl p-6 w-[90%] max-w-sm text-center space-y-5">
       <div class="w-12 h-12 mx-auto rounded-full bg-[#ff1744] flex items-center justify-center text-white text-xl font-bold">✕</div>
@@ -220,6 +226,20 @@
         <button onclick="closeDelete()" class="chip px-6 py-2.5 text-sm">Não</button>
         <button id="del-confirm" onclick="confirmDelete()" class="px-6 py-2.5 text-sm font-bold rounded-[10px] text-white bg-[#ff1744] hover:brightness-110 transition">Sim, apagar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- JANELA DE PARÂMETROS (engrenagem) -->
+  <div id="pm-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/70" onclick="if(event.target===this) closeParams()">
+    <div class="bg-cardBg border border-cardBorder rounded-2xl p-6 w-[92%] max-w-2xl max-h-[85vh] overflow-y-auto space-y-4">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-base text-slate-100"><i class="fa-solid fa-gear text-cyan-400 mr-2"></i>Parâmetros do resultado</h3>
+          <p id="pm-sub" class="text-xs text-slate-400 mt-1"></p>
+        </div>
+        <button class="pm-close" onclick="closeParams()" title="Fechar" aria-label="Fechar">✕</button>
+      </div>
+      <div id="pm-body"></div>
     </div>
   </div>
 
@@ -239,7 +259,7 @@
     const S = {
       bt: { rows: [], visible: [], tf: null, hour: null, period: null, chart: null, selected: null },
       op: { rows: [], visible: [], tf: null, hour: null, period: null, chart: null, selected: null,
-            sort: 'lucroLiquido', sort2: '', limit: 100, allParams: false }
+            sort: 'lucroLiquido', sort2: '', limit: 100 }
     };
 
     const CFG = {
@@ -257,7 +277,7 @@
         chartSub: 'Cada ponto é um passe da otimização genética, na mesma ordem da tabela abaixo',
         chartLabel: 'Lucro Líquido do Passe',
         tableTitle: 'Resultados Detalhados da Otimização (Genética)',
-        tableSub: 'Cada linha é um passe do algoritmo genético do MT5. Clique em um passe para ver só ele.'
+        tableSub: 'Cada linha é um passe do algoritmo genético do MT5. Clique em um passe para ver só ele. Use a engrenagem para ver os parâmetros.'
       }
     };
 
@@ -304,10 +324,6 @@
               <option value="500">Top 500</option>
               <option value="0">Todos</option>
             </select>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs uppercase font-bold text-slate-400 tracking-wider">Parâmetros</span>
-            <button id="op-params-toggle" onclick="toggleParams()" class="chip px-4 py-2 text-xs">Só os que variam</button>
           </div>
           <span id="op-info" class="ml-auto text-xs text-slate-400"></span>
         </div>` : '';
@@ -410,7 +426,7 @@
         </div>
         ${controls}
         <div class="overflow-x-auto">
-          <table class="custom-table text-xs ${isOp ? 'tight' : ''}">
+          <table class="custom-table text-xs">
             <thead><tr class="text-cyan-400 font-semibold uppercase">${head}</tr></thead>
             <tbody id="${p}-body" class="font-medium"></tbody>
           </table>
@@ -513,14 +529,6 @@
     function selHour(p, v) { S[p].hour = (S[p].hour === v) ? null : v; updateFilterUI(p); render(p); }
     function selPeriod(p, v) { S[p].period = (S[p].period === v) ? null : v; updateFilterUI(p); render(p); }
 
-    function toggleParams() {
-      S.op.allParams = !S.op.allParams;
-      const b = document.getElementById('op-params-toggle');
-      b.innerText = S.op.allParams ? 'Todos' : 'Só os que variam';
-      b.classList.toggle('active', S.op.allParams);
-      render('op');
-    }
-
     // ---------- Clicar em um resultado ----------
     function selectRow(p, idx) {
       const r = S[p].visible[idx];
@@ -528,6 +536,31 @@
       const k = selKey(r);
       S[p].selected = (S[p].selected === k) ? null : k;
       render(p);
+    }
+
+    // ---------- Engrenagem: parâmetros só do resultado clicado ----------
+    function openParams(p, idx) {
+      const r = S[p].visible[idx];
+      if (!r) return;
+      const keys = Object.keys(r.params || {});
+      document.getElementById('pm-sub').innerText =
+        `${r.dataHora} · ${r.timeframe}` + (r.passe ? ` · Passe ${r.passe}` : '');
+      const body = document.getElementById('pm-body');
+      if (keys.length === 0) {
+        body.innerHTML = '<p class="text-slate-400 text-sm">Parâmetros não disponíveis para este resultado.</p>';
+      } else {
+        body.innerHTML = '<div class="pm-grid">' + keys.map(n =>
+          `<div class="pm-item"><span>${esc(n.replace(/^Inp/, ''))}</span><b>${esc(r.params[n])}</b></div>`).join('') + '</div>';
+      }
+      const m = document.getElementById('pm-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeParams() {
+      const m = document.getElementById('pm-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
     }
 
     // ---------- Apagar ----------
@@ -654,12 +687,12 @@
             sharpe:       cleanNum(cols[8]),
             pctVitoria:   cleanNum(cols[9]),
             fatorEA:      cleanNum(cols[10]),
-            timeframe:    (cols[11] || '').trim().toUpperCase() || '-'
+            timeframe:    (cols[11] || '').trim().toUpperCase() || '-',
+            params:       parseParams(cols[14] || '')
           };
 
           if ((cols[12] || '').trim().toUpperCase() === 'OTIMIZACAO') {
             base.passe = (cols[13] || '').trim();
-            base.params = parseParams(cols[14] || '');
             base.horas = horasDoPasse(base.params);
             parsedOpt.push(base);
           } else {
@@ -710,32 +743,13 @@
           rows = rows.slice().sort(cmp(st.sort));
         }
         if (st.limit > 0) rows = rows.slice(0, st.limit);
+        const info = document.getElementById('op-info');
+        if (info) info.innerText = `Mostrando ${rows.length} de ${totalFiltrado} passes`;
       }
       st.visible = rows;
 
       // se o selecionado sumiu (filtro, apagado...), limpa a seleção
       if (st.selected && !rows.some(r => selKey(r) === st.selected)) st.selected = null;
-
-      // Parâmetros a exibir (só otimização)
-      let names = [];
-      if (isOp) {
-        const base = S.op.rows.filter(r => (st.tf === null || r.timeframe === st.tf));
-        if (st.allParams) {
-          const set = new Set();
-          base.forEach(r => Object.keys(r.params).forEach(k => set.add(k)));
-          names = Array.from(set);
-        } else {
-          const first = {};
-          const varying = new Set();
-          base.forEach(r => Object.keys(r.params).forEach(k => {
-            if (!(k in first)) first[k] = r.params[k];
-            else if (first[k] !== r.params[k]) varying.add(k);
-          }));
-          names = Array.from(varying);
-        }
-        const info = document.getElementById('op-info');
-        if (info) info.innerText = `Mostrando ${rows.length} de ${totalFiltrado} passes`;
-      }
 
       const body = document.getElementById(`${p}-body`);
       const colSpan = 13;
@@ -753,13 +767,12 @@
         const selCls = isSel ? ' sel' : '';
         const click = `onclick="selectRow('${p}',${idx})"`;
         const lucroClass = r.lucroLiquido >= 0 ? 'val-positive font-num' : 'val-negative font-num';
-        const ultima = `<td><button class="del-btn" onclick="event.stopPropagation(); askDelete('${p}',${idx})" title="Apagar resultado" aria-label="Apagar resultado">✕</button></td>`;
-        const tags = isOp
-          ? names.filter(n => n in r.params)
-              .map(n => `<span class="ptag">${esc(n.replace(/^Inp/, ''))}=<b>${esc(r.params[n])}</b></span>`).join('')
-          : '';
+        const ultima = `<td><div class="act-wrap">
+            <button class="gear-btn" onclick="event.stopPropagation(); openParams('${p}',${idx})" title="Ver parâmetros" aria-label="Ver parâmetros"><i class="fa-solid fa-gear"></i></button>
+            <button class="del-btn" onclick="event.stopPropagation(); askDelete('${p}',${idx})" title="Apagar resultado" aria-label="Apagar resultado">✕</button>
+          </div></td>`;
 
-        parts.push(`<tr class="${isOp ? 'pt ' : ''}text-slate-200${selCls}" ${click}>
+        parts.push(`<tr class="text-slate-200${selCls}" ${click}>
           <td class="font-mono text-slate-300 font-semibold">${esc(r.dataHora)}</td>
           <td class="${lucroClass}">$ ${fmtMoney(r.lucroLiquido)}</td>
           <td class="font-num val-negative">${r.drawdown.toFixed(2)}%</td>
@@ -774,9 +787,6 @@
           <td class="font-mono font-bold text-amber-400">${esc(r.timeframe)}</td>
           ${ultima}
         </tr>`);
-        if (isOp) {
-          parts.push(`<tr class="pb${selCls}" ${click}><td colspan="13" class="params-cell"><span class="text-slate-500 font-bold mr-2">PARÂMETROS</span>${tags || '<span class="text-slate-600">—</span>'}</td></tr><tr class="sp"><td colspan="13"></td></tr>`);
-        }
       });
       body.innerHTML = parts.join('');
 
@@ -839,6 +849,8 @@
         }
       });
     }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeParams(); });
 
     window.onload = function () {
       document.getElementById('view-bt').innerHTML = viewHTML('bt');
