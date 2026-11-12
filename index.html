@@ -228,14 +228,24 @@
   <main class="flex-1 p-4 md:p-6 space-y-6 max-w-[1800px] mx-auto w-full">
 
     <!-- ABAS -->
-    <div class="flex gap-3">
-      <button id="tab-bt" onclick="switchTab('bt')" class="tab-btn active"><i class="fa-solid fa-chart-line mr-2"></i>BACKTESTS<span id="count-bt" class="tab-count">0</span></button>
-      <button id="tab-op" onclick="switchTab('op')" class="tab-btn"><i class="fa-solid fa-dna mr-2"></i>OTIMIZAÇÃO<span id="count-op" class="tab-count">0</span></button>
+    <div class="flex flex-wrap gap-3">
+      <button id="tab-bt" onclick="switchTab('bt')" class="tab-btn active"><i class="fa-solid fa-chart-line mr-2"></i>RESULTADOS INDIVIDUAIS<span id="count-bt" class="tab-count">0</span></button>
+      <button id="tab-op" onclick="switchTab('op')" class="tab-btn"><i class="fa-solid fa-dna mr-2"></i>TESTES BASEADOS EM GENÉTICA RÁPIDA<span id="count-op" class="tab-count">0</span></button>
+      <button id="tab-ch" onclick="switchTab('ch')" class="tab-btn"><i class="fa-solid fa-chart-area mr-2"></i>GRÁFICO</button>
     </div>
 
     <!-- As duas visões são montadas pelo JavaScript com o mesmo layout -->
     <div id="view-bt" class="space-y-6"></div>
     <div id="view-op" class="space-y-6 hidden"></div>
+    <div id="view-ch" class="hidden">
+      <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-3">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-chart-area text-cyan-400"></i>
+          <h3 class="font-bold text-base text-slate-100">Gráfico XAUUSD (TradingView)</h3>
+        </div>
+        <div id="tv-chart" class="w-full rounded-lg overflow-hidden" style="height: 75vh; min-height: 480px;"></div>
+      </div>
+    </div>
 
   </main>
 
@@ -529,11 +539,39 @@
     // ---------- Abas ----------
     function switchTab(t) {
       currentTab = t;
-      document.getElementById('view-bt').classList.toggle('hidden', t !== 'bt');
-      document.getElementById('view-op').classList.toggle('hidden', t !== 'op');
-      document.getElementById('tab-bt').classList.toggle('active', t === 'bt');
-      document.getElementById('tab-op').classList.toggle('active', t === 'op');
-      if (S[t].chart) S[t].chart.resize();
+      ['bt', 'op', 'ch'].forEach(k => {
+        document.getElementById('view-' + k).classList.toggle('hidden', t !== k);
+        document.getElementById('tab-' + k).classList.toggle('active', t === k);
+      });
+      if (S[t] && S[t].chart) S[t].chart.resize();
+      if (t === 'ch') loadTradingView();
+    }
+
+    // ---------- Gráfico TradingView (carrega só na primeira vez que abre a aba) ----------
+    let tvLoaded = false;
+    function loadTradingView() {
+      if (tvLoaded) return;
+      tvLoaded = true;
+      const s = document.createElement('script');
+      s.src = 'https://s3.tradingview.com/tv.js';
+      s.onload = () => {
+        new TradingView.widget({
+          autosize: true,
+          symbol: 'OANDA:XAUUSD',
+          interval: '15',
+          timezone: 'Asia/Tokyo',
+          theme: 'dark',
+          style: '1',
+          locale: 'br',
+          toolbar_bg: '#111823',
+          enable_publishing: false,
+          allow_symbol_change: true,
+          hide_side_toolbar: false,
+          container_id: 'tv-chart'
+        });
+      };
+      s.onerror = () => { tvLoaded = false; };
+      document.head.appendChild(s);
     }
 
     // ---------- Filtros ----------
