@@ -259,16 +259,16 @@
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center space-x-2">
             <i class="fa-solid fa-gauge-high text-cyan-400"></i>
-            <h3 class="font-bold text-base text-slate-100">RSI 14 · XAUUSD</h3>
+            <h3 class="font-bold text-base text-slate-100">RSI 14 · <span id="rsi-title">XAU/USD</span></h3>
           </div>
-          <span id="rsi-status" class="text-xs text-slate-400"></span>
+          <div class="flex items-center gap-3 flex-wrap justify-end"><select id="asset-select" class="opt-select" onchange="changeAsset(this.value)"></select><span id="rsi-status" class="text-xs text-slate-400"></span></div>
         </div>
         <div id="rsi-grid" class="rsi-grid"></div>
       </div>
       <div class="bg-cardBg border border-cardBorder rounded-xl p-4 space-y-3">
         <div class="flex items-center space-x-2">
           <i class="fa-solid fa-chart-area text-cyan-400"></i>
-          <h3 class="font-bold text-base text-slate-100">Gráfico XAUUSD (TradingView)</h3>
+          <h3 class="font-bold text-base text-slate-100">Gráfico <span id="tv-title">XAU/USD</span> (TradingView)</h3>
         </div>
         <div id="tv-chart" class="w-full rounded-lg overflow-hidden" style="height: 75vh; min-height: 480px;"></div>
       </div>
@@ -579,8 +579,18 @@
 
     // ---------- RSI 14 por timeframe (Twelve Data) ----------
     // Cole aqui a sua chave grátis do Twelve Data (twelvedata.com)
-    const TWELVE_KEY = 'COLE_SUA_CHAVE_AQUI';
-    const RSI_SYMBOL = 'XAU/USD';
+    const TWELVE_KEY = '716b7712620d48a8a3ee9a064965d663';
+    // Ativos disponíveis: td = nome no Twelve Data (RSI), tv = nome no TradingView (gráfico)
+    const ASSETS = [
+      { nome: 'Ouro (XAU/USD)',    td: 'XAU/USD', tv: 'OANDA:XAUUSD' },
+      { nome: 'Bitcoin (BTC/USD)', td: 'BTC/USD', tv: 'BITSTAMP:BTCUSD' },
+      { nome: 'Ethereum (ETH/USD)', td: 'ETH/USD', tv: 'COINBASE:ETHUSD' },
+      { nome: 'EUR/USD',           td: 'EUR/USD', tv: 'OANDA:EURUSD' },
+      { nome: 'GBP/USD',           td: 'GBP/USD', tv: 'OANDA:GBPUSD' },
+      { nome: 'USD/JPY',           td: 'USD/JPY', tv: 'OANDA:USDJPY' }
+    ];
+    let currentAsset = ASSETS[0];
+    let rsiToken = 0;
     const RSI_TFS = [['1min', '1 min'], ['5min', '5 min'], ['15min', '15 min'], ['1h', '1 hora'],
                      ['4h', '4 horas'], ['1day', '1 dia'], ['1week', '1 sem'], ['1month', '1 mês']];
     let rsiLast = 0;
@@ -598,24 +608,29 @@
         return;
       }
       rsiLast = Date.now();
+      const my = ++rsiToken;
+      const sym = currentAsset.td;
       status.innerText = 'Atualizando...';
       let erro = '';
       await Promise.all(RSI_TFS.map(async ([k]) => {
         const el = document.getElementById('rsi-' + k);
         try {
-          const url = `https://api.twelvedata.com/rsi?symbol=${encodeURIComponent(RSI_SYMBOL)}&interval=${k}&time_period=14&outputsize=1&apikey=${TWELVE_KEY}`;
+          const url = `https://api.twelvedata.com/rsi?symbol=${encodeURIComponent(sym)}&interval=${k}&time_period=14&outputsize=1&apikey=${TWELVE_KEY}`;
           const res = await fetch(url);
           const d = await res.json();
+          if (my !== rsiToken) return;
           if (d.status === 'error' || !d.values || !d.values.length) throw new Error(d.message || 'sem dados');
           const v = parseFloat(d.values[0].rsi);
           el.innerText = v.toFixed(2);
           el.className = 'rsi-val' + (v < 30 ? ' low' : v > 70 ? ' high' : '');
         } catch (e) {
+          if (my !== rsiToken) return;
           el.innerText = '--';
           el.className = 'rsi-val off';
           erro = e.message;
         }
       }));
+      if (my !== rsiToken) return;
       const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       status.innerText = erro ? `Erro: ${erro}` : `Atualizado às ${hora} · abaixo de 30 verde, acima de 70 vermelho`;
     }
@@ -627,24 +642,50 @@
       tvLoaded = true;
       const s = document.createElement('script');
       s.src = 'https://s3.tradingview.com/tv.js';
-      s.onload = () => {
-        new TradingView.widget({
-          autosize: true,
-          symbol: 'OANDA:XAUUSD',
-          interval: '15',
-          timezone: 'Asia/Tokyo',
-          theme: 'dark',
-          style: '1',
-          locale: 'br',
-          toolbar_bg: '#111823',
-          enable_publishing: false,
-          allow_symbol_change: true,
-          hide_side_toolbar: false,
-          container_id: 'tv-chart'
-        });
-      };
+      s.onload = () => { buildTV(); };
       s.onerror = () => { tvLoaded = false; };
       document.head.appendChild(s);
+    }
+
+    function buildTV() {
+      if (typeof TradingView === 'undefined') return;
+      document.getElementById('tv-chart').innerHTML = '';
+      new TradingView.widget({
+        autosize: true,
+        symbol: currentAsset.tv,
+        interval: '15',
+        timezone: 'Asia/Tokyo',
+        theme: 'dark',
+        style: '1',
+        locale: 'br',
+        toolbar_bg: '#111823',
+        enable_publishing: false,
+        allow_symbol_change: false,
+        hide_side_toolbar: false,
+        container_id: 'tv-chart'
+      });
+    }
+
+    function assetBuild() {
+      const sel = document.getElementById('asset-select');
+      sel.innerHTML = ASSETS.map(a => `<option value="${a.td}">${a.nome}</option>`).join('');
+      sel.value = currentAsset.td;
+    }
+
+    // ---------- Trocar o ativo: muda o RSI e o gráfico juntos ----------
+    function changeAsset(td) {
+      const a = ASSETS.find(x => x.td === td);
+      if (!a) return;
+      currentAsset = a;
+      document.getElementById('rsi-title').innerText = a.td;
+      document.getElementById('tv-title').innerText = a.td;
+      RSI_TFS.forEach(([k]) => {
+        const el = document.getElementById('rsi-' + k);
+        if (el) { el.innerText = '--'; el.className = 'rsi-val off'; }
+      });
+      rsiLast = 0;
+      if (tvLoaded) buildTV();
+      if (currentTab === 'ch') loadRSI();
     }
 
     // ---------- Filtros ----------
@@ -1103,6 +1144,7 @@
       initChart('bt');
       initChart('op');
       rsiBuild();
+      assetBuild();
       fetchData();
       setInterval(fetchData, 30000);
       setInterval(() => { if (currentTab === 'ch') loadRSI(); }, 300000);
