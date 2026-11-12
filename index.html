@@ -91,14 +91,37 @@
     .gear-btn:hover { transform: scale(1.15) rotate(45deg); border-color: #00f2fe; box-shadow: 0 0 14px rgba(0, 242, 254, 0.6); }
 
     /* ===== JANELA DE PARÂMETROS ===== */
-    .pm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    @media (max-width: 520px) { .pm-grid { grid-template-columns: 1fr; } }
-    .pm-item {
-      display: flex; justify-content: space-between; gap: 12px; background: #0b1220;
-      border: 1px solid #25354e; border-radius: 8px; padding: 8px 12px;
-      font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #cbd5e1;
+    .pm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+    .pm-card {
+      background: linear-gradient(180deg, #0f1a2b, #0b1220); border: 1px solid #25354e;
+      border-top: 3px solid var(--c); border-radius: 14px; padding: 14px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
     }
-    .pm-item b { color: #fbbf24; font-weight: 600; text-align: right; }
+    .pm-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .pm-card-icon {
+      width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 15px; color: var(--c); background: color-mix(in srgb, var(--c) 15%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+    }
+    .pm-card-title { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #e2e8f0; }
+    .pm-row {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 7px 0; border-bottom: 1px dashed #1e293b; font-size: 13px; color: #94a3b8;
+    }
+    .pm-row:last-child { border-bottom: none; }
+    .pm-val { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #fbbf24; font-size: 14px; }
+    .pm-sim, .pm-nao {
+      display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 800;
+    }
+    .pm-sim { color: #00ff87; background: rgba(0, 255, 135, 0.12); border: 1px solid rgba(0, 255, 135, 0.4); }
+    .pm-nao { color: #ff4d6d; background: rgba(255, 23, 68, 0.12); border: 1px solid rgba(255, 23, 68, 0.4); }
+    .pm-hours { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .pm-hour {
+      padding: 6px 12px; border-radius: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px;
+      color: #00f2fe; background: rgba(0, 242, 254, 0.1); border: 1px solid rgba(0, 242, 254, 0.45);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+    }
     .pm-close {
       width: 30px; height: 30px; border-radius: 50%; border: none; cursor: pointer;
       background: #ff1744; color: #fff; font-size: 15px; font-weight: 700;
@@ -231,7 +254,7 @@
 
   <!-- JANELA DE PARÂMETROS (engrenagem) -->
   <div id="pm-modal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/70" onclick="if(event.target===this) closeParams()">
-    <div class="bg-cardBg border border-cardBorder rounded-2xl p-6 w-[92%] max-w-2xl max-h-[85vh] overflow-y-auto space-y-4">
+    <div class="bg-cardBg border border-cardBorder rounded-2xl p-6 w-[94%] max-w-5xl max-h-[88vh] overflow-y-auto space-y-4">
       <div class="flex items-start justify-between gap-4">
         <div>
           <h3 class="font-bold text-base text-slate-100"><i class="fa-solid fa-gear text-cyan-400 mr-2"></i>Parâmetros do resultado</h3>
@@ -538,6 +561,110 @@
       render(p);
     }
 
+    // ---------- Organização dos parâmetros em quadradinhos ----------
+    // tipo: 'b' = Sim/Não, 'n' = número (com unidade opcional)
+    const PM_GROUPS = [
+      { t: 'Dias de operação', ic: 'fa-calendar-week', c: '#22d3ee', rows: [
+        ['Segunda-feira', 'InpOperarSeg', 'b'], ['Terça-feira', 'InpOperarTer', 'b'],
+        ['Quarta-feira', 'InpOperarQua', 'b'], ['Quinta-feira', 'InpOperarQui', 'b'],
+        ['Sexta-feira', 'InpOperarSex', 'b'] ] },
+      { t: 'Modo de abertura', ic: 'fa-door-open', c: '#a78bfa', rows: [
+        ['Livre mínimo', 'InpLivreMin', 'n', '%'], ['Livre máximo', 'InpLivreMax', 'n', '%'],
+        ['Pullback', 'InpPullbackPct', 'n', '%'] ] },
+      { t: 'Take Profit e Stop Loss', ic: 'fa-bullseye', c: '#34d399', rows: [
+        ['Take Profit', 'InpTP_Pct', 'n', '%'], ['Stop Loss', 'InpSL_Pct', 'n', '%'] ] },
+      { t: 'Gap de abertura', ic: 'fa-sun', c: '#fbbf24', rows: [
+        ['Operar abertura', 'InpOperarAbertura', 'b'], ['Fator do gap', 'InpGapFator', 'n', 'x'] ] },
+      { t: 'Gestão de lote', ic: 'fa-coins', c: '#f59e0b', rows: [
+        ['Valor fixo de TP', 'InpUsarValorFixoTP', 'b'], ['Valor alvo', 'InpValorFixoTP', 'n', '$'] ] },
+      { t: 'Grid de pullback', ic: 'fa-layer-group', c: '#38bdf8', rows: [
+        ['Grid ligado', 'InpGridAtivo', 'b'],
+        ['Nível 1', 'InpGridNivel1Pct', 'n', '%'], ['Nível 2', 'InpGridNivel2Pct', 'n', '%'],
+        ['Nível 3', 'InpGridNivel3Pct', 'n', '%'],
+        ['Alvo 1', 'InpGridTP1', 'n', '$'], ['Alvo 2', 'InpGridTP2', 'n', '$'],
+        ['Alvo 3', 'InpGridTP3', 'n', '$'] ] },
+      { t: 'Inverter a mão', ic: 'fa-arrows-rotate', c: '#fb7185', rows: [
+        ['Inverter a mão', 'InpInverterMao', 'b'], ['Máx. inversões', 'InpMaxInversoes', 'n'],
+        ['Multiplicador', 'InpMultiplicadorInversao', 'n', 'x'],
+        ['Confirmação de candle', 'InpConfirmacaoCandle', 'b'] ] }
+    ];
+
+    function pmBool(v) {
+      const on = ['true', '1'].includes(String(v).toLowerCase());
+      return on ? '<span class="pm-sim"><i class="fa-solid fa-check"></i>Sim</span>'
+                : '<span class="pm-nao"><i class="fa-solid fa-xmark"></i>Não</span>';
+    }
+
+    function pmCard(title, icon, color, inner) {
+      return `<div class="pm-card" style="--c:${color}">
+        <div class="pm-card-head"><div class="pm-card-icon"><i class="fa-solid ${icon}"></i></div><span class="pm-card-title">${title}</span></div>
+        ${inner}</div>`;
+    }
+
+    function pmRow(label, val) {
+      return `<div class="pm-row"><span>${label}</span>${val}</div>`;
+    }
+
+    function buildParams(params) {
+      const used = new Set();
+      const cards = [];
+
+      PM_GROUPS.forEach(g => {
+        const rows = [];
+        g.rows.forEach(([label, key, tipo, un]) => {
+          if (!(key in params)) return;
+          used.add(key);
+          const v = params[key];
+          let val;
+          if (tipo === 'b') val = pmBool(v);
+          else if (un === '$') val = `<span class="pm-val">$ ${esc(v)}</span>`;
+          else val = `<span class="pm-val">${esc(v)}${un ? ' ' + un : ''}</span>`;
+          rows.push(pmRow(label, val));
+        });
+        if (rows.length) cards.push(pmCard(g.t, g.ic, g.c, rows.join('')));
+      });
+
+      // Canal por hora: só os horários ligados
+      const horas = [];
+      let temHora = false;
+      Object.keys(params).forEach(k => {
+        const m = /^InpH(\d\d)$/.exec(k);
+        if (m) {
+          temHora = true; used.add(k);
+          if (['true', '1'].includes(String(params[k]).toLowerCase())) horas.push(parseInt(m[1], 10));
+        }
+      });
+      [1, 2, 3].forEach(n => {
+        const kh = 'InpHora' + n, ko = kh + '_On';
+        if (kh in params) {
+          temHora = true; used.add(kh); used.add(ko);
+          if (['true', '1'].includes(String(params[ko]).toLowerCase())) horas.push(parseInt(params[kh], 10));
+        }
+      });
+      if (temHora) {
+        horas.sort((a, b) => a - b);
+        let inner = horas.length
+          ? '<div class="pm-hours">' + horas.map(h => `<span class="pm-hour">${String(h).padStart(2, '0')}h</span>`).join('') + '</div>'
+          : '<span class="text-slate-500 text-sm">Nenhum horário ligado</span>';
+        [['Manter canais vivos', 'InpManterCanaisVivos', 'b'], ['Velas do canal', 'InpCandlesCanal', 'n']].forEach(([l, k, t]) => {
+          if (k in params) {
+            used.add(k);
+            inner += pmRow(l, t === 'b' ? pmBool(params[k]) : `<span class="pm-val">${esc(params[k])}</span>`);
+          }
+        });
+        cards.push(pmCard('Canal por hora', 'fa-clock', '#00f2fe', inner));
+      }
+
+      // Qualquer parâmetro que não foi reconhecido vai para "Outros"
+      const outros = Object.keys(params).filter(k => !used.has(k));
+      if (outros.length) {
+        cards.push(pmCard('Outros', 'fa-ellipsis', '#94a3b8',
+          outros.map(k => pmRow(esc(k.replace(/^Inp/, '')), `<span class="pm-val">${esc(params[k])}</span>`)).join('')));
+      }
+
+      return '<div class="pm-grid">' + cards.join('') + '</div>';
+    }
+
     // ---------- Engrenagem: parâmetros só do resultado clicado ----------
     function openParams(p, idx) {
       const r = S[p].visible[idx];
@@ -546,12 +673,9 @@
       document.getElementById('pm-sub').innerText =
         `${r.dataHora} · ${r.timeframe}` + (r.passe ? ` · Passe ${r.passe}` : '');
       const body = document.getElementById('pm-body');
-      if (keys.length === 0) {
-        body.innerHTML = '<p class="text-slate-400 text-sm">Parâmetros não disponíveis para este resultado.</p>';
-      } else {
-        body.innerHTML = '<div class="pm-grid">' + keys.map(n =>
-          `<div class="pm-item"><span>${esc(n.replace(/^Inp/, ''))}</span><b>${esc(r.params[n])}</b></div>`).join('') + '</div>';
-      }
+      body.innerHTML = keys.length === 0
+        ? '<p class="text-slate-400 text-sm">Parâmetros não disponíveis para este resultado.</p>'
+        : buildParams(r.params);
       const m = document.getElementById('pm-modal');
       m.classList.remove('hidden');
       m.classList.add('flex');
