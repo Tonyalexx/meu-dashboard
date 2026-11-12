@@ -574,7 +574,7 @@
       { t: 'Take Profit e Stop Loss', ic: 'fa-bullseye', c: '#34d399', rows: [
         ['Take Profit', 'InpTP_Pct', 'n', '%'], ['Stop Loss', 'InpSL_Pct', 'n', '%'] ] },
       { t: 'Gap de abertura', ic: 'fa-sun', c: '#fbbf24', rows: [
-        ['Operar abertura', 'InpOperarAbertura', 'b'], ['Fator do gap', 'InpGapFator', 'n', 'x'] ] },
+        ['Operar abertura', 'InpOperarAbertura', 'b'], ['Fator do gap', 'InpGapFator', 'n', 'f1'] ] },
       { t: 'Gestão de lote', ic: 'fa-coins', c: '#f59e0b', rows: [
         ['Valor fixo de TP', 'InpUsarValorFixoTP', 'b'], ['Valor alvo', 'InpValorFixoTP', 'n', '$'] ] },
       { t: 'Grid de pullback', ic: 'fa-layer-group', c: '#38bdf8', rows: [
@@ -617,6 +617,7 @@
           const v = params[key];
           let val;
           if (tipo === 'b') val = pmBool(v);
+          else if (un === 'f1') val = `<span class="pm-val">${isNaN(parseFloat(v)) ? esc(v) : parseFloat(v).toFixed(1)}</span>`;
           else if (un === '$') val = `<span class="pm-val">$ ${esc(v)}</span>`;
           else val = `<span class="pm-val">${esc(v)}${un ? ' ' + un : ''}</span>`;
           rows.push(pmRow(label, val));
@@ -649,10 +650,17 @@
         [['Manter canais vivos', 'InpManterCanaisVivos', 'b'], ['Velas do canal', 'InpCandlesCanal', 'n']].forEach(([l, k, t]) => {
           if (k in params) {
             used.add(k);
-            inner += pmRow(l, t === 'b' ? pmBool(params[k]) : `<span class="pm-val">${esc(params[k])}</span>`);
+            inner += pmRow(l, t === 'b' ? pmBool(params[k]) : `<span class="pm-val">${esc(params[k])} candles</span>`);
           }
         });
-        cards.push(pmCard('Canal por hora', 'fa-clock', '#00f2fe', inner));
+        cards.push(pmCard('Formar canal', 'fa-clock', '#00f2fe', inner));
+      }
+
+      // Timeframe em quadradinho próprio
+      if ('InpTimeframe' in params) {
+        used.add('InpTimeframe');
+        cards.push(pmCard('Timeframe', 'fa-hourglass-half', '#f472b6',
+          `<div class="pm-hours"><span class="pm-hour">${esc(params['InpTimeframe'])}</span></div>`));
       }
 
       // Qualquer parâmetro que não foi reconhecido vai para "Outros"
