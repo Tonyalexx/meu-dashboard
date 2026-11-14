@@ -379,8 +379,8 @@
     function viewHTML(p) {
       const c = CFG[p];
       const isOp = (p === 'op');
-      const head = ['Data / Hora', 'Lucro Líquido', 'Drawdown', 'Maior Lucro', 'Maior Perda',
-        'Ganhos Consec.', 'Perdas Consec.', 'Operações', 'Sharpe', '% Vitória', 'Fator EA', 'Timeframe']
+      const head = (isOp ? ['Data Início', 'Data Fim'] : ['Data / Hora']).concat(['Lucro Líquido', 'Drawdown', 'Maior Lucro', 'Maior Perda',
+        'Ganhos Consec.', 'Perdas Consec.', 'Operações', 'Sharpe', '% Vitória', 'Fator EA', 'Timeframe'])
         .map(h => `<th>${h}</th>`).join('') + '<th></th>';
 
       const controls = isOp ? `
@@ -881,7 +881,7 @@
       if (!r) return;
       const keys = Object.keys(r.params || {});
       document.getElementById('pm-sub').innerText =
-        `${r.dataHora} · ${r.timeframe}` + (r.passe ? ` · Passe ${r.passe}` : '');
+        (r.dataInicio && r.dataInicio !== '-' ? `${r.dataInicio} → ` : '') + `${r.dataHora} · ${r.timeframe}` + (r.passe ? ` · Passe ${r.passe}` : '');
       const body = document.getElementById('pm-body');
       body.innerHTML = keys.length === 0
         ? '<p class="text-slate-400 text-sm">Parâmetros não disponíveis para este resultado.</p>'
@@ -1036,6 +1036,8 @@
 
           if ((cols[12] || '').trim().toUpperCase() === 'OTIMIZACAO') {
             base.passe = (cols[13] || '').trim();
+            // Coluna P da planilha (16ª): data do primeiro tick do teste. Passes antigos não têm.
+            base.dataInicio = (cols[15] || '').trim() || '-';
             base.horas = horasDoPasse(base.params);
             parsedOpt.push(base);
           } else {
@@ -1095,7 +1097,7 @@
       if (st.selected && !rows.some(r => selKey(r) === st.selected)) st.selected = null;
 
       const body = document.getElementById(`${p}-body`);
-      const colSpan = 13;
+      const colSpan = isOp ? 14 : 13;
       const parts = [];
 
       if (rows.length === 0) {
@@ -1116,6 +1118,7 @@
           </div></td>`;
 
         parts.push(`<tr class="text-slate-200${selCls}" ${click}>
+          ${isOp ? `<td class="font-mono text-slate-300 font-semibold">${esc(r.dataInicio)}</td>` : ''}
           <td class="font-mono text-slate-300 font-semibold">${esc(r.dataHora)}</td>
           <td class="${lucroClass}">$ ${fmtMoney(r.lucroLiquido)}</td>
           <td class="font-num val-negative">${r.drawdown.toFixed(2)}%</td>
@@ -1134,8 +1137,8 @@
       body.innerHTML = parts.join('');
 
       // Nomes das colunas, usados pela tabela em formato de cartão no celular
-      const LABELS = ['Data / Hora', 'Lucro Líquido', 'Drawdown', 'Maior Lucro', 'Maior Perda',
-        'Ganhos Consec.', 'Perdas Consec.', 'Operações', 'Sharpe', '% Vitória', 'Fator EA', 'Timeframe'];
+      const LABELS = (isOp ? ['Data Início', 'Data Fim'] : ['Data / Hora']).concat(['Lucro Líquido', 'Drawdown', 'Maior Lucro', 'Maior Perda',
+        'Ganhos Consec.', 'Perdas Consec.', 'Operações', 'Sharpe', '% Vitória', 'Fator EA', 'Timeframe']);
       body.querySelectorAll('tr').forEach(tr => {
         tr.querySelectorAll('td').forEach((td, i) => {
           if (td.colSpan === 1 && LABELS[i]) td.setAttribute('data-label', LABELS[i]);
